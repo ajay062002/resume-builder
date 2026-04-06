@@ -1,0 +1,1 @@
+imagepath="D:\\2020 Projects\\2020_Pycharm_Projects\\ResumeBuilder\\"
