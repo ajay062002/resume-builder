@@ -1,182 +1,82 @@
-# 📄 Resume Builder
+# Resume Builder – Student & Recruiter Portal
 
-A full-stack Django web application that lets users register, fill in their academic and professional profile, and instantly generate a formatted PDF resume — all from the browser.
-
-![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![Django](https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=white)
-![SQLite](https://img.shields.io/badge/SQLite-07405E?style=for-the-badge&logo=sqlite&logoColor=white)
-![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
-![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
+A Django web app that connects students and recruiters. Students build their profile and download a generated PDF resume. Recruiters post job notifications and search candidates ranked by skill match.
 
 ---
 
-## ✨ Features
+## How It Works
 
-- User registration and login system
-- Profile builder — education, skills, projects, career objective, work experience
-- One-click PDF resume generation using ReportLab
-- Admin dashboard for managing users and job notifications
-- Notification board for job postings
-- Profile photo upload support
+**Student side**
+- Register with personal info, education history, skills, projects, and work experience
+- View and update your profile at any time
+- Download a formatted PDF resume generated from your profile (via ReportLab)
 
----
-
-## 🏗️ Architecture
-
-```
-Browser (HTML/CSS)
-       │
-       ▼
-  Django Views  ──────────────────────────────┐
-       │                                       │
-       ▼                                       ▼
-  Django ORM                            ReportLab PDF
-       │                                  Generator
-       ▼                                       │
-   SQLite DB                                   ▼
-(User Profiles,                        PDF File Download
- Notifications)                          ← returned to browser
-```
-
-### Request Flow
-
-```
-User fills form
-      │
-      ▼
-POST request → Django View validates form data
-      │
-      ▼
-UserModel saved to SQLite via Django ORM
-      │
-      ▼
-User clicks "Generate Resume"
-      │
-      ▼
-Django fetches profile from SQLite
-      │
-      ▼
-ReportLab draws PDF layout (name, education, skills, projects)
-      │
-      ▼
-PDF returned as file download to browser
-```
+**Recruiter / Admin side**
+- Login as admin to access the recruiter dashboard
+- Post job notifications with required skills and description
+- Search students by skills — results are ranked by how many required skills each student matches
+- View full candidate profiles and download their resumes
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
-| Language | Python 3 |
-| Web Framework | Django |
-| Database | SQLite |
+| Backend | Python 3, Django |
+| Database | SQLite (Django default) |
 | PDF Generation | ReportLab |
-| Frontend | HTML, CSS (Django Templates) |
-| Admin Panel | Django Admin |
+| Frontend | HTML / CSS (Django templates) |
+| Auth | Django session-based authentication |
 
 ---
 
-## 📁 Project Structure
+## Setup
 
-```
-ResumeBuilder/
-├── manage.py                  # Django entry point
-├── ResumeBuilder/
-│   ├── settings.py            # Project settings
-│   ├── urls.py                # Root URL config
-│   ├── wsgi.py
-│   └── asgi.py
-├── resume/
-│   ├── models.py              # UserModel, NotificationModel
-│   ├── views.py               # All view logic + PDF generation
-│   ├── forms.py               # Registration and login forms
-│   ├── admin.py               # Admin panel config
-│   ├── constants.py
-│   └── migrations/            # Database migrations
-├── templates/
-│   ├── index.html             # Login page
-│   ├── registration.html      # Register page
-│   ├── users.html             # User profile page
-│   ├── viewprofile.html       # View/edit profile
-│   ├── viewnotifications.html # Job notifications
-│   └── addnotification.html   # Admin: add notification
-└── static/                    # CSS and static assets
-```
-
----
-
-## ⚙️ Setup & Installation
-
-### Prerequisites
-- Python 3.6+
-- Conda (recommended) or pip
-
-### Steps
-
+### 1. Clone the repo
 ```bash
-# 1. Clone the repository
 git clone https://github.com/ajay062002/resume-builder.git
 cd resume-builder
+```
 
-# 2. Create and activate environment
-conda create -n resumebuilder python=3.8
-conda activate resumebuilder
+### 2. Install dependencies
+```bash
+pip install django reportlab
+```
 
-# 3. Install dependencies
-pip install django reportlab pillow
-
-# 4. Run migrations
+### 3. Run migrations
+```bash
 python manage.py migrate
+```
 
-# 5. Create superuser (for admin access)
-python manage.py createsuperuser
-
-# 6. Start the server
+### 4. Start the server
+```bash
 python manage.py runserver
 ```
 
-Then open your browser at `http://127.0.0.1:8000`
+Visit: [http://localhost:8000](http://localhost:8000)
 
 ---
 
-## 🚀 How to Use
+## Login
 
-### As a User
-1. Go to `http://127.0.0.1:8000` and register an account
-2. Fill in your profile — education, skills, projects, career objective
-3. Upload a profile photo
-4. Click **Generate Resume** to download your PDF resume
-
-### As an Admin
-1. Go to `http://127.0.0.1:8000/admin`
-2. Login with superuser credentials
-3. Manage users, view profiles, and post job notifications
+| Role | Username | Password |
+|------|----------|----------|
+| Admin / Recruiter | `admin` | `admin` |
+| Student | your registered email | your password |
 
 ---
 
-## 📊 Database Models
+## Features
 
-### UserModel
-Stores the complete user profile including personal info, education percentages, skills, projects, career objective, and profile photo.
-
-### NotificationModel
-Stores job postings created by the admin — title, description, required skills, and date.
-
----
-
-## 🔮 Future Improvements
-
-- Multiple resume templates to choose from
-- Export to DOCX format
-- Online resume sharing via unique link
-- Real-time preview before download
-- Cloud storage for profile photos
+- Student registration and profile management
+- PDF resume generation with personal info, education, skills, projects, and experience
+- Admin dashboard to post and manage job notifications
+- Skill-based candidate search with match ranking
+- Profile photo upload
 
 ---
 
-## 👤 Author
+## Author
 
-**Ajay Thota**
-- GitHub: [@ajay062002](https://github.com/ajay062002)
-- Portfolio: [ajaylive.com](https://ajaylive.com)
+[Ajay Thota](https://github.com/ajay062002)
