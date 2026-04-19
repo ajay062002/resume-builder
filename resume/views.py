@@ -223,7 +223,7 @@ def download(request):
     c.drawString(100, 620, "Nationality:"+str(user.nationality))  # write your text
     c.drawString(100, 600, "Languages Known:"+str(user.languages))  # write your text
 
-    c.drawImage(constants.imagepath+str(user.pic), 400, 610, width=120, height=120)
+    c.drawImage(constants.imagepath+str(user.pic).split('/')[-1], 400, 610, width=120, height=120)
 
     ##  =========================================================================================================
 
@@ -315,5 +315,4 @@ def deletenotification(request):
     notificationid = request.GET['notificationid']
     NotificationModel.objects.get(id=notificationid).delete()
 
-    return render(request, "viewnotifications.html", {"notifications": NotificationModel.objects.all()})
-
+    return render(request, "viewnotifications.html", {"notifications": NotificationModel.obj
