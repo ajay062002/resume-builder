@@ -1,21 +1,14 @@
-# Resume Builder – Student & Recruiter Portal
+# Resume Builder
 
-A Django web app that connects students and recruiters. Students build their profile and download a generated PDF resume. Recruiters post job notifications and search candidates ranked by skill match.
+A Django web app where students fill in their profile and download a formatted PDF resume. Admins post job notifications and search candidates ranked by skill match.
 
 ---
 
-## How It Works
+## What it does
 
-**Student side**
-- Register with personal info, education history, skills, projects, and work experience
-- View and update your profile at any time
-- Download a formatted PDF resume generated from your profile (via ReportLab)
+**Students** register, fill in five profile tabs (Personal, Education, Skills, Projects, Experience), and download a clean PDF resume generated server-side from their data.
 
-**Recruiter / Admin side**
-- Login as admin to access the recruiter dashboard
-- Post job notifications with required skills and description
-- Search students by skills — results are ranked by how many required skills each student matches
-- View full candidate profiles and download their resumes
+**Admins** log in to post job notifications with required skills, and search the candidate pool — results are ranked by how many required skills each student matches.
 
 ---
 
@@ -24,59 +17,82 @@ A Django web app that connects students and recruiters. Students build their pro
 | Layer | Technology |
 |-------|-----------|
 | Backend | Python 3, Django |
-| Database | SQLite (Django default) |
-| PDF Generation | ReportLab |
-| Frontend | HTML / CSS (Django templates) |
-| Auth | Django session-based authentication |
+| Frontend | React (in-browser Babel), HTML/CSS |
+| Database | SQLite |
+| PDF generation | ReportLab (Platypus layout engine) |
+| Static files | WhiteNoise |
 
 ---
 
-## Setup
+## Project Structure
 
-### 1. Clone the repo
+```
+resume-builder/
+├── ResumeBuilder/          # Django project config
+│   ├── settings.py
+│   ├── settings_prod.py
+│   └── urls.py
+│
+├── resume/                 # Main app
+│   ├── models.py           # UserModel, NotificationModel
+│   ├── forms.py
+│   │
+│   ├── views/              # Template-based views
+│   │   ├── auth.py         # registration, login, logout
+│   │   ├── profile.py      # viewprofile, updateprofile, updatepic
+│   │   ├── search.py       # admin skill search
+│   │   ├── notifications.py
+│   │   └── download.py     # PDF download
+│   │
+│   ├── api/                # JSON API (used by React frontend)
+│   │   ├── auth.py         # /api/login/ /api/logout/ /api/register/
+│   │   ├── profile.py      # /api/profile/ /api/profile/update/ /api/download/
+│   │   ├── search.py       # /api/search/
+│   │   └── notifications.py
+│   │
+│   └── pdf/                # PDF generation
+│       ├── styles.py       # ReportLab ParagraphStyle definitions
+│       ├── sections.py     # One function per resume section
+│       └── builder.py      # build_resume_pdf(user) -> returns file path
+│
+├── static/
+│   └── resume-ranking.html # React SPA (main UI)
+├── templates/              # Django HTML templates
+├── generated/              # Generated PDF output
+└── images/                 # Uploaded profile photos
+```
+
+---
+
+## Running Locally
+
 ```bash
 git clone https://github.com/ajay062002/resume-builder.git
 cd resume-builder
-```
-
-### 2. Install dependencies
-```bash
-pip install django reportlab
-```
-
-### 3. Run migrations
-```bash
+pip install -r requirements.txt
 python manage.py migrate
-```
-
-### 4. Start the server
-```bash
 python manage.py runserver
 ```
 
-Visit: [http://localhost:8000](http://localhost:8000)
+Open http://localhost:8000
+
+Default admin: `admin` / `admin`
 
 ---
 
-## Login
+## API Endpoints
 
-| Role | Username | Password |
-|------|----------|----------|
-| Admin / Recruiter | `admin` | `admin` |
-| Student | your registered email | your password |
-
----
-
-## Features
-
-- Student registration and profile management
-- PDF resume generation with personal info, education, skills, projects, and experience
-- Admin dashboard to post and manage job notifications
-- Skill-based candidate search with match ranking
-- Profile photo upload
-
----
-
-## Author
-
-[Ajay Thota](https://github.com/ajay062002)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/csrf/` | Get CSRF cookie |
+| POST | `/api/login/` | Login |
+| POST | `/api/logout/` | Logout |
+| POST | `/api/register/` | Register student |
+| GET | `/api/profile/` | Get profile |
+| POST | `/api/profile/update/` | Update profile |
+| POST | `/api/profile/pic/` | Upload photo |
+| GET | `/api/download/` | Download PDF resume |
+| GET | `/api/search/?keyword=python,django` | Skill search (admin) |
+| GET | `/api/notifications/` | List notifications |
+| POST | `/api/notifications/add/` | Add notification (admin) |
+| DELETE | `/api/notifications/<id>/delete/` | Delete notification (admin) |

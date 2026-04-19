@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Resume Ranking</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body, #root { height: 100%; }
+    body { background: #0d1117; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: antialiased; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
+    input:focus, textarea:focus { border-color: #2dd4bf !important; box-shadow: 0 0 0 2px rgba(45,212,191,0.1) !important; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+// Auth.jsx — Login screen
+
+const authStyles = {
+  root: { display:'flex', minHeight:'100vh', background:'#0d1117', fontFamily:"'Plus Jakarta Sans', sans-serif" },
+  left: { flex:'0 0 400px', background:'linear-gradient(160deg,#0f2744 0%,#0a1f38 60%,#061020 100%)', display:'flex', flexDirection:'column', justifyContent:'center', padding:'60px 48px', position:'relative', overflow:'hidden' },
+  glow: { position:'absolute', width:400, height:400, borderRadius:'50%', background:'radial-gradient(circle, rgba(45,212,191,0.08) 0%, transparent 70%)', top:-100, right:-100, pointerEvents:'none' },
+  logoWrap: { display:'flex', alignItems:'center', gap:12, marginBottom:24 },
+  logoMark: { width:48, height:48, background:'linear-gradient(135deg,#2dd4bf,#06b6d4)', borderRadius:12, display:'flex', alignItems:'center', justifyContent:'center', fontSize:22, fontWeight:800, color:'#0d1117' },
+  brandName: { fontSize:24, fontWeight:800, color:'#e6edf3', margin:0 },
+  tagline: { fontSize:28, fontWeight:700, color:'#e6edf3', margin:'0 0 12px', lineHeight:1.3 },
+  taglineSub: { fontSize:15, color:'#64748b', margin:'0 0 40px', lineHeight:1.6 },
+  features: { display:'flex', flexDirection:'column', gap:14 },
+  feature: { display:'flex', alignItems:'center', gap:12, color:'#8b949e', fontSize:14 },
+  featureDot: { width:6, height:6, borderRadius:'50%', background:'#2dd4bf', flexShrink:0 },
+  right: { flex:1, display:'flex', alignItems:'center', justifyContent:'center', padding:40 },
+  card: { width:'100%', maxWidth:420, background:'#161b22', border:'1px solid #21262d', borderRadius:16, padding:40 },
+  cardTitle: { fontSize:22, fontWeight:700, color:'#e6edf3', margin:'0 0 6px' },
+  cardSub: { fontSize:14, color:'#8b949e', margin:'0 0 28px' },
+  roleTabs: { display:'flex', background:'#0d1117', borderRadius:10, padding:4, marginBottom:28, gap:4 },
+  roleTab: { flex:1, padding:'8px 0', border:'none', borderRadius:8, background:'transparent', color:'#8b949e', cursor:'pointer', fontSize:13, fontWeight:500, fontFamily:"'Plus Jakarta Sans', sans-serif", transition:'all 0.2s' },
+  roleTabActive: { background:'#1c2333', color:'#2dd4bf', boxShadow:'0 1px 4px rgba(0,0,0,0.4)' },
+  field: { marginBottom:18 },
+  label: { display:'block', fontSize:12, fontWeight:600, color:'#8b949e', textTransform:'uppercase', letterSpacing:'0.05em', marginBottom:7 },
+  input: { width:'100%', padding:'11px 14px', background:'#0d1117', border:'1px solid #30363d', borderRadius:9, color:'#e6edf3', fontSize:14, fontFamily:"'Plus Jakarta Sans', sans-serif", boxSizing:'border-box', outline:'none' },
+  error: { color:'#f85149', fontSize:13, margin:'-6px 0 14px', padding:'8px 12px', background:'rgba(248,81,73,0.08)', borderRadius:8 },
+  submitBtn: { width:'100%', padding:13, background:'linear-gradient(135deg,#2dd4bf,#0891b2)', border:'none', borderRadius:10, color:'#0d1117', fontSize:15, fontWeight:700, cursor:'pointer', fontFamily:"'Plus Jakarta Sans', sans-serif", marginTop:6 },
+  demoBox: { marginTop:16, padding:'10px 14px', background:'rgba(45,212,191,0.06)', border:'1px solid rgba(45,212,191,0.15)', borderRadius:8 },
+  demoText: { fontSize:12, color:'#2dd4bf', margin:0 },
+};
+
+const LoginScreen = ({ onLogin }) => {
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [role, setRole] = React.useState('student');
+  const [error, setError] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+  const [mode, setMode] = React.useState('login');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!email || !password) { setError('Please fill in all fields.'); return; }
+    setLoading(true); setError('');
+    try {
+      await fetch('/api/csrf/', { credentials: 'include' });
+      const res = await fetch('/api/login/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ username: email, password }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        onLogin({ role: data.role === 'admin' ? 'admin' : 'student', email: data.email, name: data.name });
+      } else {
+        setError(data.error || 'Invalid credentials');
+        setLoading(false);
+      }
+    } catch (err) {
+      setError('Connection error. Is the server running?');
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={authStyles.root}>
+      <div style={authStyles.left}>
+        <div style={authStyles.glow} />
+        <div style={authStyles.logoWrap}>
+          <div style={authStyles.logoMark}>R</div>
+          <span style={authStyles.brandName}>Resume Ranking</span>
+        </div>
+        <h1 style={authStyles.tagline}>Build your career,<br/>land your role.</h1>
+        <p style={authStyles.taglineSub}>One platform for students to showcase resumes and recruiters to find top talent by skill.</p>
+        <div style={authStyles.features}>
+          {['Step-by-step resume builder','Live resume preview as you type','PDF resume generation','Skill-based candidate ranking'].map(f => (
+            <div key={f} style={authStyles.feature}><div style={authStyles.featureDot}/><span>{f}</span></div>
+          ))}
+        </div>
+      </div>
+      <div style={authStyles.right}>
+        <div style={authStyles.card}>
+          {mode === 'login' ? <>
+            <h2 style={authStyles.cardTitle}>Welcome back</h2>
+            <p style={authStyles.cardSub}>Sign in to continue</p>
+            <div style={authStyles.roleTabs}>
+              {[['student','Student'],['admin','Recruiter / Admin']].map(([r,label]) => (
+                <button key={r} onClick={() => { setRole(r); setError(''); setEmail(''); setPassword(''); }}
+                  style={{ ...authStyles.roleTab, ...(role===r ? authStyles.roleTabActive : {}) }}>{label}</button>
+              ))}
+            </div>
+            <form onSubmit={handleSubmit}>
+              <div style={authStyles.field}>
+                <label style={authStyles.label}>{role==='admin' ? 'Username' : 'Email Address'}</label>
+                <input style={authStyles.input} type={role==='admin' ? 'text' : 'email'}
+                  placeholder={role==='admin' ? 'admin' : 'you@example.com'}
+                  value={email} onChange={e => setEmail(e.target.value)} autoFocus />
+              </div>
+              <div style={authStyles.field}>
+                <label style={authStyles.label}>Password</label>
+                <input style={authStyles.input} type="password" placeholder="••••••••"
+                  value={password} onChange={e => setPassword(e.target.value)} />
+              </div>
+              {error && <p style={authStyles.error}>{error}</p>}
+              <button type="submit" style={{ ...authStyles.submitBtn, opacity: loading ? 0.7 : 1 }} disabled={loading}>
+                {loading ? 'Signing in…' : 'Sign In'}
+              </button>
+            </form>
+            {role === 'student' && (
+              <p style={{marginTop:16,textAlign:'center',fontSize:13,color:'#8b949e'}}>
+                New here?{' '}
+                <button onClick={() => { setMode('register'); setError(''); setEmail(''); setPassword(''); }}
+                  style={{background:'none',border:'none',color:'#2dd4bf',cursor:'pointer',fontSize:13,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
+                  Create an account
+                </button>
+              </p>
+            )}
+          </> : <>
+            <h2 style={authStyles.cardTitle}>Create account</h2>
+            <p style={authStyles.cardSub}>Join as a student to build your resume</p>
+            <form onSubmit={handleSubmit}>
+              <div style={authStyles.field}>
+                <label style={authStyles.label}>Full Name</label>
+                <input style={authStyles.input} type="text" placeholder="Ajay Thota"
+                  value={name} onChange={e => setName(e.target.value)} autoFocus />
+              </div>
+              <div style={authStyles.field}>
+                <label style={authStyles.label}>Email Address</label>
+                <input style={authStyles.input} type="email" placeholder="you@example.com"
+                  value={email} onChange={e => setEmail(e.target.value)} />
+              </div>
+              <div style={authStyles.field}>
+                <label style={authStyles.label}>Password</label>
+                <input style={authStyles.input} type="password" placeholder="Choose a password"
+                  value={password} onChange={e => setPassword(e.target.value)} />
+              </div>
+              {error && <p style={authStyles.error}>{error}</p>}
+              <button type="submit" style={{ ...authStyles.submitBtn, opacity: loading ? 0.7 : 1 }} disabled={loading}>
+                {loading ? 'Creating account…' : 'Create Account'}
+              </button>
+            </form>
+            <p style={{marginTop:16,textAlign:'center',fontSize:13,color:'#8b949e'}}>
+              Already have an account?{' '}
+              <button onClick={() => { setMode('login'); setError(''); }}
+                style={{background:'none',border:'none',color:'#2dd4bf',cursor:'pointer',fontSize:13,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
+                Sign in
+              </button>
+            </p>
+          </>}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+Object.assign(window, { LoginScreen });
+
+// ResumePreview.jsx
+
+const resumePreviewStyles = {
+  paper: { background:'#fff', borderRadius:3, padding:'24px 22px 28px', color:'#1a1a1a', minHeight:600, boxShadow:'0 12px 48px rgba(0,0,0,0.5)', fontFamily:'Arial, sans-serif' },
+  name: { fontSize:20, fontWeight:800, color:'#000', margin:'0 0 3px', letterSpacing:'-0.01em' },
+  contactRow: { fontSize:9, color:'#555', margin:'0 0 8px', lineHeight:1.5 },
+  divider: { border:'none', borderTop:'1.5px solid #000', margin:'0 0 10px' },
+  thinDivider: { border:'none', borderTop:'0.5px solid #888', margin:'3px 0 6px' },
+  section: { marginBottom:11 },
+  secTitle: { fontSize:10, fontWeight:800, color:'#000', textDecoration:'underline', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 1px' },
+  twoCol: { display:'grid', gridTemplateColumns:'90px 1fr', gap:'2px 8px', fontSize:9.5 },
+  colLabel: { fontWeight:700, color:'#1a1a1a' },
+  colVal: { color:'#333' },
+  eduRow: { display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:4 },
+  eduTitle: { fontSize:10, fontWeight:700, color:'#222' },
+  eduSub: { fontSize:9, color:'#666', marginLeft:4 },
+  eduPct: { fontSize:10, fontWeight:700, color:'#1a56db', flexShrink:0 },
+  skillGrid: { display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'2px 6px', fontSize:9.5 },
+  skillItem: { color:'#222' },
+  bullet: { fontSize:9.5, color:'#333', margin:'1px 0', lineHeight:1.45, paddingLeft:10 },
+  projectTitle: { fontSize:10, fontWeight:700, color:'#222', margin:'0 0 2px' },
+  body: { fontSize:9.5, color:'#444', margin:'0 0 3px', lineHeight:1.5 },
+  empty: { textAlign:'center', padding:'48px 0', color:'#ccc' },
+  emptyIcon: { fontSize:28, marginBottom:8 },
+  emptyText: { fontSize:11 },
+};
+
+const ResumePreview = ({ profile }) => {
+  const rs = resumePreviewStyles;
+  const has = k => profile[k] && String(profile[k]).trim() && String(profile[k]).trim() !== 'None';
+  const list = str => str ? str.split(',').map(x => x.trim()).filter(Boolean) : [];
+
+  const isEmpty = !has('name') && !has('skills') && !has('degreebranch') && !has('careerobjective');
+
+  const Section = ({ title, children }) => (
+    <div style={rs.section}>
+      <div style={rs.secTitle}>{title}</div>
+      <hr style={rs.thinDivider} />
+      {children}
+    </div>
+  );
+
+  return (
+    <div style={rs.paper}>
+      {/* Header */}
+      <h1 style={rs.name}>{has('name') ? profile.name : <span style={{opacity:0.3,fontSize:16}}>Your Name</span>}</h1>
+      {(has('email')||has('mobile')||has('address')) && (
+        <div style={rs.contactRow}>
+          {[profile.email, profile.mobile, profile.address].filter(v => v && String(v).trim()).join('   |   ')}
+        </div>
+      )}
+      <hr style={rs.divider} />
+
+      {/* Professional Summary */}
+      {has('careerobjective') && (
+        <Section title="Professional Summary">
+          {String(profile.careerobjective).split('\n').filter(l=>l.trim()).map((l,i) =>
+            <div key={i} style={rs.bullet}>• {l.trim()}</div>
+          )}
+        </Section>
+      )}
+
+      {/* Education */}
+      {(has('degreebranch')||has('intermediatebranch')||has('sscpercentage')) && (
+        <Section title="Education">
+          {has('degreebranch') && (
+            <div style={rs.eduRow}>
+              <span><span style={rs.eduTitle}>Degree</span><span style={rs.eduSub}>{profile.degreebranch}</span></span>
+              {has('degreepercentage') && <span style={rs.eduPct}>{profile.degreepercentage}%</span>}
+            </div>
+          )}
+          {has('intermediatebranch') && (
+            <div style={rs.eduRow}>
+              <span><span style={rs.eduTitle}>Intermediate (12th)</span><span style={rs.eduSub}>{profile.intermediatebranch}</span></span>
+              {has('intermediatepercentage') && <span style={rs.eduPct}>{profile.intermediatepercentage}%</span>}
+            </div>
+          )}
+          {has('sscpercentage') && (
+            <div style={rs.eduRow}>
+              <span style={rs.eduTitle}>SSC (10th)</span>
+              <span style={rs.eduPct}>{profile.sscpercentage}%</span>
+            </div>
+          )}
+        </Section>
+      )}
+
+      {/* Technical Skills */}
+      {has('skills') && (
+        <Section title="Technical Skills">
+          <div style={rs.skillGrid}>
+            {list(profile.skills).map(s => <span key={s} style={rs.skillItem}>• {s}</span>)}
+          </div>
+        </Section>
+      )}
+
+      {/* Key Strengths */}
+      {(has('personalstrengths')||has('professionalstrengths')) && (
+        <Section title="Key Strengths">
+          <div style={rs.twoCol}>
+            {has('personalstrengths') && <><span style={rs.colLabel}>Personal</span><span style={rs.colVal}>{profile.personalstrengths}</span></>}
+            {has('professionalstrengths') && <><span style={rs.colLabel}>Professional</span><span style={rs.colVal}>{profile.professionalstrengths}</span></>}
+          </div>
+        </Section>
+      )}
+
+      {/* Projects */}
+      {has('projecttitle') && (
+        <Section title="Projects">
+          <div style={rs.projectTitle}>{profile.projecttitle}</div>
+          {has('projectdescription') && String(profile.projectdescription).split('\n').filter(l=>l.trim()).map((l,i)=>
+            <div key={i} style={rs.bullet}>• {l.trim()}</div>
+          )}
+        </Section>
+      )}
+
+      {/* Experience */}
+      {(has('yearofExperience')||has('currentworkingcompany')) && (
+        <Section title="Professional Experience">
+          <div style={rs.twoCol}>
+            {has('currentworkingcompany') && <><span style={rs.colLabel}>Company</span><span style={rs.colVal}>{profile.currentworkingcompany}</span></>}
+            {has('yearofExperience') && <><span style={rs.colLabel}>Experience</span><span style={rs.colVal}>{profile.yearofExperience} year{profile.yearofExperience!=='1'?'s':''}</span></>}
+          </div>
+        </Section>
+      )}
+
+      {/* Personal Information */}
+      {(has('dob')||has('gender')||has('nationality')||has('languages')) && (
+        <Section title="Personal Information">
+          <div style={rs.twoCol}>
+            {has('dob') && <><span style={rs.colLabel}>Date of Birth</span><span style={rs.colVal}>{profile.dob}</span></>}
+            {has('gender') && <><span style={rs.colLabel}>Gender</span><span style={rs.colVal}>{profile.gender}</span></>}
+            {has('nationality') && <><span style={rs.colLabel}>Nationality</span><span style={rs.colVal}>{profile.nationality}</span></>}
+            {has('languages') && <><span style={rs.colLabel}>Languages</span><span style={rs.colVal}>{profile.languages}</span></>}
+          </div>
+        </Section>
+      )}
+
+      {isEmpty && (
+        <div style={rs.empty}>
+          <div style={rs.emptyIcon}>📄</div>
+          <div style={rs.emptyText}>Your resume appears here as you fill in the form</div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+Object.assign(window, { ResumePreview });
+
+// StudentPortal.jsx
+
+const studentStyles = {
+  root: { display:'flex', height:'100vh', background:'#0d1117', fontFamily:"'Plus Jakarta Sans', sans-serif", overflow:'hidden' },
+  sidebar: { width:220, background:'#161b22', borderRight:'1px solid #21262d', display:'flex', flexDirection:'column', justifyContent:'space-between', padding:'20px 14px', flexShrink:0 },
+  sTop: { display:'flex', flexDirection:'column', gap:20 },
+  logoWrap: { display:'flex', alignItems:'center', gap:10 },
+  logoMark: { width:30, height:30, background:'linear-gradient(135deg,#2dd4bf,#06b6d4)', borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:800, color:'#0d1117', flexShrink:0 },
+  logoText: { fontSize:14, fontWeight:800, color:'#e6edf3' },
+  userBadge: { display:'flex', alignItems:'center', gap:10, padding:'10px', background:'#1c2333', borderRadius:10, border:'1px solid #21262d' },
+  avatar: { width:34, height:34, borderRadius:9, background:'linear-gradient(135deg,#2dd4bf,#0891b2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:15, fontWeight:700, color:'#0d1117', flexShrink:0 },
+  uName: { fontSize:13, fontWeight:600, color:'#e6edf3', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' },
+  uRole: { fontSize:11, color:'#8b949e' },
+  navLabel: { fontSize:10, fontWeight:700, color:'#484f58', textTransform:'uppercase', letterSpacing:'0.07em', padding:'0 10px', marginBottom:3 },
+  nav: { display:'flex', flexDirection:'column', gap:2 },
+  navBtn: { display:'block', width:'100%', textAlign:'left', padding:'8px 10px', borderRadius:7, border:'none', background:'transparent', color:'#8b949e', cursor:'pointer', fontSize:13, fontFamily:"'Plus Jakarta Sans', sans-serif", fontWeight:500 },
+  navBtnActive: { background:'rgba(45,212,191,0.1)', color:'#2dd4bf' },
+  logoutBtn: { width:'100%', padding:'8px 10px', border:'1px solid #21262d', borderRadius:8, background:'transparent', color:'#484f58', cursor:'pointer', fontSize:12, fontFamily:"'Plus Jakarta Sans', sans-serif" },
+  main: { flex:1, overflow:'hidden', display:'flex' },
+  splitLayout: { display:'flex', flex:1, overflow:'hidden' },
+  formPanel: { flex:1, overflow:'auto', padding:'28px 30px', display:'flex', flexDirection:'column', minWidth:0 },
+  fHeader: { display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:22 },
+  pageTitle: { fontSize:20, fontWeight:700, color:'#e6edf3', margin:'0 0 3px' },
+  pageSub: { fontSize:13, color:'#8b949e', margin:0 },
+  saveBtn: { padding:'8px 16px', border:'none', borderRadius:8, color:'#0d1117', fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:"'Plus Jakarta Sans', sans-serif", flexShrink:0 },
+  stepTabs: { display:'flex', gap:3, marginBottom:10, overflowX:'auto' },
+  stepTab: { display:'flex', alignItems:'center', gap:6, padding:'6px 12px', border:'1px solid #21262d', borderRadius:7, background:'transparent', color:'#8b949e', cursor:'pointer', fontSize:12, fontFamily:"'Plus Jakarta Sans', sans-serif", fontWeight:500, whiteSpace:'nowrap', flexShrink:0 },
+  stepTabActive: { background:'rgba(45,212,191,0.1)', borderColor:'#2dd4bf', color:'#2dd4bf' },
+  stepTabDone: { borderColor:'rgba(63,185,80,0.35)', color:'#3fb950', background:'rgba(63,185,80,0.06)' },
+  stepBadge: { display:'inline-flex', width:16, height:16, borderRadius:'50%', background:'rgba(255,255,255,0.07)', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:700 },
+  progressBar: { height:2, background:'#21262d', borderRadius:2, marginBottom:22 },
+  progressFill: { height:'100%', background:'linear-gradient(90deg,#2dd4bf,#0891b2)', borderRadius:2, transition:'width 0.4s ease' },
+  formBody: { flex:1 },
+  stepGrid: { display:'grid', gridTemplateColumns:'1fr 1fr', gap:'0 20px' },
+  fWrap: { marginBottom:14 },
+  fLabel: { display:'block', fontSize:11, fontWeight:700, color:'#8b949e', textTransform:'uppercase', letterSpacing:'0.05em', marginBottom:6 },
+  fHint: { fontWeight:400, textTransform:'none', letterSpacing:0, color:'#484f58' },
+  fInput: { width:'100%', padding:'9px 12px', background:'#0d1117', border:'1px solid #30363d', borderRadius:8, color:'#e6edf3', fontSize:13, fontFamily:"'Plus Jakarta Sans', sans-serif", boxSizing:'border-box', outline:'none' },
+  fTextarea: { width:'100%', padding:'9px 12px', background:'#0d1117', border:'1px solid #30363d', borderRadius:8, color:'#e6edf3', fontSize:13, fontFamily:"'Plus Jakarta Sans', sans-serif", boxSizing:'border-box', outline:'none', resize:'vertical', lineHeight:1.55 },
+  eduCard: { background:'#161b22', border:'1px solid #21262d', borderRadius:10, padding:'14px 18px', marginBottom:10 },
+  eduCardTitle: { fontSize:12, fontWeight:700, color:'#2dd4bf', margin:'0 0 12px' },
+  formNav: { display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:22, paddingTop:18, borderTop:'1px solid #21262d' },
+  stepInfo: { fontSize:12, color:'#484f58' },
+  prevBtn: { padding:'8px 18px', border:'1px solid #30363d', borderRadius:8, background:'transparent', color:'#8b949e', cursor:'pointer', fontSize:13, fontFamily:"'Plus Jakarta Sans', sans-serif" },
+  nextBtn: { padding:'8px 18px', border:'none', borderRadius:8, background:'linear-gradient(135deg,#2dd4bf,#0891b2)', color:'#0d1117', fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:"'Plus Jakarta Sans', sans-serif" },
+  previewPanel: { width:340, borderLeft:'1px solid #21262d', display:'flex', flexDirection:'column', background:'#0a0e15', flexShrink:0 },
+  previewHead: { padding:'12px 16px', borderBottom:'1px solid #21262d', display:'flex', justifyContent:'space-between', alignItems:'center', flexShrink:0 },
+  previewLabel: { fontSize:12, fontWeight:700, color:'#e6edf3' },
+  liveDot: { display:'flex', alignItems:'center', gap:5, fontSize:11, color:'#3fb950' },
+  dot: { width:6, height:6, borderRadius:'50%', background:'#3fb950' },
+  previewScroll: { flex:1, overflow:'auto', padding:16 },
+  notifView: { flex:1, overflow:'auto', padding:'28px 30px' },
+  notifCard: { background:'#161b22', border:'1px solid #21262d', borderRadius:12, padding:'18px 22px', marginBottom:10 },
+  notifTop: { display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:8 },
+  notifTitle: { fontSize:15, fontWeight:700, color:'#e6edf3', margin:0 },
+  notifDate: { fontSize:11, color:'#484f58' },
+  notifDesc: { fontSize:13, color:'#8b949e', margin:'0 0 10px', lineHeight:1.5 },
+  tagRow: { display:'flex', flexWrap:'wrap', gap:5 },
+  tag: { fontSize:11, padding:'2px 9px', background:'rgba(45,212,191,0.08)', color:'#2dd4bf', borderRadius:20, border:'1px solid rgba(45,212,191,0.15)' },
+};
+
+const FF = ({ label, hint, value, onChange, type='text', placeholder, full, minH }) => (
+  <div style={{ ...studentStyles.fWrap, ...(full ? { gridColumn:'1 / -1' } : {}) }}>
+    <label style={studentStyles.fLabel}>{label}{hint && <span style={studentStyles.fHint}> — {hint}</span>}</label>
+    {type === 'textarea'
+      ? <textarea style={{ ...studentStyles.fTextarea, minHeight: minH || 80 }} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} />
+      : <input style={studentStyles.fInput} type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} />
+    }
+  </div>
+);
+
+const PersonalStep = ({ p, u }) => {
+  const [uploading, setUploading] = React.useState(false);
+  const [picLabel, setPicLabel] = React.useState(p.pic ? 'Photo uploaded ✓' : 'Upload Photo');
+  const fileRef = React.useRef();
+
+  const handlePic = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    const fd = new FormData();
+    fd.append('pic', file);
+    fetch('/api/profile/pic/', { method:'POST', body: fd, credentials:'include' })
+      .then(r => r.json())
+      .then(d => {
+        if (d.success) { setPicLabel('Photo uploaded ✓'); u('pic', d.pic); }
+        else setPicLabel('Upload failed');
+      })
+      .catch(() => setPicLabel('Upload failed'))
+      .finally(() => setUploading(false));
+  };
+
+  return (
+    <div style={studentStyles.stepGrid}>
+      <FF label="Full Name" value={p.name} onChange={v=>u('name',v)} placeholder="Jane Doe" />
+      <FF label="Email" value={p.email} onChange={v=>u('email',v)} type="email" placeholder="jane@example.com" />
+      <FF label="Mobile" value={p.mobile} onChange={v=>u('mobile',v)} placeholder="+91 98765 43210" />
+      <FF label="Date of Birth" value={p.dob} onChange={v=>u('dob',v)} type="date" />
+      <FF label="Gender" value={p.gender} onChange={v=>u('gender',v)} placeholder="Female" />
+      <FF label="Nationality" value={p.nationality} onChange={v=>u('nationality',v)} placeholder="Indian" />
+      <FF label="Languages" value={p.languages} onChange={v=>u('languages',v)} placeholder="English, Hindi" />
+      <FF label="Address" value={p.address} onChange={v=>u('address',v)} type="textarea" placeholder="123 Main St, City" full />
+      <div style={{ gridColumn:'1 / -1' }}>
+        <label style={studentStyles.fLabel}>Profile Photo</label>
+        <input ref={fileRef} type="file" accept="image/*" style={{display:'none'}} onChange={handlePic} />
+        <button type="button" onClick={() => fileRef.current.click()}
+          style={{ padding:'8px 18px', borderRadius:8, border:'1px dashed #30363d', background:'rgba(45,212,191,0.07)', color: picLabel.includes('✓') ? '#3fb950' : '#2dd4bf', fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
+          {uploading ? 'Uploading…' : picLabel}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const EducationStep = ({ p, u }) => (
+  <div>
+    <div style={studentStyles.eduCard}>
+      <h3 style={studentStyles.eduCardTitle}>Degree / Graduation</h3>
+      <div style={studentStyles.stepGrid}>
+        <FF label="Branch" value={p.degreebranch} onChange={v=>u('degreebranch',v)} placeholder="Computer Science" />
+        <FF label="Percentage / CGPA" value={p.degreepercentage} onChange={v=>u('degreepercentage',v)} placeholder="85.5" />
+      </div>
+    </div>
+    <div style={studentStyles.eduCard}>
+      <h3 style={studentStyles.eduCardTitle}>Intermediate (12th)</h3>
+      <div style={studentStyles.stepGrid}>
+        <FF label="Stream" value={p.intermediatebranch} onChange={v=>u('intermediatebranch',v)} placeholder="MPC / BiPC" />
+        <FF label="Percentage" value={p.intermediatepercentage} onChange={v=>u('intermediatepercentage',v)} placeholder="92" />
+      </div>
+    </div>
+    <div style={studentStyles.eduCard}>
+      <h3 style={studentStyles.eduCardTitle}>SSC (10th)</h3>
+      <FF label="Percentage" value={p.sscpercentage} onChange={v=>u('sscpercentage',v)} placeholder="88" />
+    </div>
+  </div>
+);
+
+const SkillsStep = ({ p, u }) => (
+  <div>
+    <FF label="Career Objective" value={p.careerobjective} onChange={v=>u('careerobjective',v)} type="textarea"
+      placeholder="A motivated CS graduate seeking challenging opportunities…" full minH={88} />
+    <FF label="Technical Skills" hint="comma-separated" value={p.skills} onChange={v=>u('skills',v)}
+      placeholder="Python, React, SQL, Machine Learning" full />
+    <FF label="Personal Strengths" value={p.personalstrengths} onChange={v=>u('personalstrengths',v)}
+      placeholder="Leadership, Communication, Problem Solving" full />
+    <FF label="Professional Strengths" value={p.professionalstrengths} onChange={v=>u('professionalstrengths',v)}
+      placeholder="Agile, Project Management, Team Collaboration" full />
+  </div>
+);
+
+const ProjectsStep = ({ p, u }) => (
+  <div>
+    <FF label="Project Title" value={p.projecttitle} onChange={v=>u('projecttitle',v)}
+      placeholder="E-commerce Platform using React & Django" full />
+    <FF label="Description" value={p.projectdescription} onChange={v=>u('projectdescription',v)} type="textarea"
+      placeholder="Built a full-stack e-commerce platform with user auth, product catalog, cart…" full minH={130} />
+  </div>
+);
+
+const ExperienceStep = ({ p, u }) => (
+  <div style={studentStyles.stepGrid}>
+    <FF label="Years of Experience" value={p.yearofExperience} onChange={v=>u('yearofExperience',v)} placeholder="2" type="number" />
+    <FF label="Current / Last Company" value={p.currentworkingcompany} onChange={v=>u('currentworkingcompany',v)} placeholder="Tech Corp Pvt Ltd" />
+  </div>
+);
+
+const STEPS = [
+  { id:'personal', label:'Personal', Comp: PersonalStep },
+  { id:'education', label:'Education', Comp: EducationStep },
+  { id:'skills', label:'Skills', Comp: SkillsStep },
+  { id:'projects', label:'Projects', Comp: ProjectsStep },
+  { id:'experience', label:'Experience', Comp: ExperienceStep },
+];
+
+const defaultProfile = {
+  name:'', email:'', mobile:'', dob:'', gender:'', nationality:'', address:'', languages:'',
+  degreepercentage:'', degreebranch:'', intermediatepercentage:'', intermediatebranch:'', sscpercentage:'',
+  skills:'', personalstrengths:'', professionalstrengths:'', careerobjective:'',
+  projecttitle:'', projectdescription:'', yearofExperience:'', currentworkingcompany:'',
+};
+
+const MOCK_NOTIFS = [
+  { id:1, title:'Frontend Developer', description:'React developer needed for our growing product team.', skills:'React, JavaScript, CSS', date:'Apr 10, 2026' },
+  { id:2, title:'Data Analyst', description:'Join our analytics team to drive data-informed decisions.', skills:'Python, SQL, Excel', date:'Apr 15, 2026' },
+  { id:3, title:'Full Stack Engineer', description:'Build scalable web apps using modern frameworks.', skills:'Node.js, React, MongoDB', date:'Apr 17, 2026' },
+];
+
+const StudentPortal = ({ user, onLogout, tweaks }) => {
+  const [activeNav, setActiveNav] = React.useState('profile');
+  const [step, setStep] = React.useState(0);
+  const [profile, setProfile] = React.useState({ ...defaultProfile, email: user.email, name: user.name || '' });
+  const [saved, setSaved] = React.useState(false);
+  const [saveErr, setSaveErr] = React.useState('');
+
+  // Load profile from server on mount
+  React.useEffect(() => {
+    fetch('/api/profile/', { credentials: 'include' })
+      .then(r => r.json())
+      .then(data => {
+        if (!data.error) {
+          setProfile(prev => ({ ...prev, ...data }));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const update = (key, val) => setProfile(prev => ({ ...prev, [key]: val }));
+
+  const handleSave = async () => {
+    setSaveErr('');
+    try {
+      const { pic, ...body } = profile;
+      const res = await fetch('/api/profile/update/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2000);
+      } else {
+        setSaveErr('Save failed');
+      }
+    } catch {
+      setSaveErr('Connection error');
+    }
+  };
+
+  const { Comp } = STEPS[step];
+
+  return (
+    <div style={studentStyles.root}>
+      <div style={studentStyles.sidebar}>
+        <div style={studentStyles.sTop}>
+          <div style={studentStyles.logoWrap}>
+            <div style={studentStyles.logoMark}>R</div>
+            <span style={studentStyles.logoText}>ResumeBuilder</span>
+          </div>
+          <div style={studentStyles.userBadge}>
+            <div style={studentStyles.avatar}>{(profile.name || user.name)[0].toUpperCase()}</div>
+            <div style={{ minWidth:0 }}>
+              <div style={studentStyles.uName}>{profile.name || user.name}</div>
+              <div style={studentStyles.uRole}>Student</div>
+            </div>
+          </div>
+          <nav style={studentStyles.nav}>
+            <div style={studentStyles.navLabel}>Menu</div>
+            {[['profile','My Resume'],['notifications','Job Alerts']].map(([id, label]) => (
+              <button key={id} onClick={() => setActiveNav(id)}
+                style={{ ...studentStyles.navBtn, ...(activeNav===id ? studentStyles.navBtnActive : {}) }}>
+                {label}
+              </button>
+            ))}
+          </nav>
+        </div>
+        <button onClick={onLogout} style={studentStyles.logoutBtn}>Sign out</button>
+      </div>
+
+      <div style={studentStyles.main}>
+        {activeNav === 'profile' ? (
+          <div style={studentStyles.splitLayout}>
+            <div style={studentStyles.formPanel}>
+              <div style={studentStyles.fHeader}>
+                <div>
+                  <h1 style={studentStyles.pageTitle}>Build Your Resume</h1>
+                  <p style={studentStyles.pageSub}>Fill in each section — live preview updates instantly.</p>
+                </div>
+                <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:3}}>
+                  <button onClick={handleSave}
+                    style={{ ...studentStyles.saveBtn, background: saved ? '#3fb950' : 'linear-gradient(135deg,#2dd4bf,#0891b2)', marginTop:4 }}>
+                    {saved ? '✓ Saved' : 'Save'}
+                  </button>
+                  {saveErr && <span style={{fontSize:11,color:'#f85149'}}>{saveErr}</span>}
+                </div>
+              </div>
+
+              <div style={studentStyles.stepTabs}>
+                {STEPS.map((st, i) => (
+                  <button key={st.id} onClick={() => setStep(i)}
+                    style={{ ...studentStyles.stepTab, ...(i===step ? studentStyles.stepTabActive : {}), ...(i<step ? studentStyles.stepTabDone : {}) }}>
+                    <span style={studentStyles.stepBadge}>{i<step ? '✓' : i+1}</span>
+                    {st.label}
+                  </button>
+                ))}
+              </div>
+              <div style={studentStyles.progressBar}>
+                <div style={{ ...studentStyles.progressFill, width:`${((step+1)/STEPS.length)*100}%` }} />
+              </div>
+
+              <div style={studentStyles.formBody}>
+                <Comp p={profile} u={update} />
+              </div>
+
+              <div style={studentStyles.formNav}>
+                <button onClick={() => setStep(prev => Math.max(0, prev-1))}
+                  style={{ ...studentStyles.prevBtn, opacity: step===0 ? 0.35 : 1 }} disabled={step===0}>
+                  ← Back
+                </button>
+                <span style={studentStyles.stepInfo}>Step {step+1} of {STEPS.length}</span>
+                {step < STEPS.length-1
+                  ? <button onClick={() => setStep(prev => prev+1)} style={studentStyles.nextBtn}>Next →</button>
+                  : <button onClick={handleSave} style={{ ...studentStyles.nextBtn, background: saved ? '#3fb950' : undefined }}>
+                      {saved ? '✓ Saved!' : 'Finish & Save'}
+                    </button>
+                }
+              </div>
+            </div>
+
+            <div style={studentStyles.previewPanel}>
+              <div style={studentStyles.previewHead}>
+                <span style={studentStyles.previewLabel}>Live Preview</span>
+                <div style={{display:'flex',alignItems:'center',gap:10}}>
+                  <span style={studentStyles.liveDot}><span style={studentStyles.dot}/>live</span>
+                  {user && user.email && <a href={`/download?email=${user.email}`} target="_blank" style={{fontSize:11,fontWeight:700,color:'#2dd4bf',textDecoration:'none',padding:'4px 10px',border:'1px solid #2dd4bf',borderRadius:6}}>↓ PDF</a>}
+                </div>
+              </div>
+              <div style={studentStyles.previewScroll}>
+                <ResumePreview profile={profile} template={tweaks && tweaks.resumeTemplate ? tweaks.resumeTemplate : 'modern'} />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div style={studentStyles.notifView}>
+            <h1 style={{ ...studentStyles.pageTitle, marginBottom:4 }}>Job Alerts</h1>
+            <p style={{ color:'#8b949e', fontSize:13, marginBottom:24 }}>Opportunities posted by recruiters.</p>
+            {MOCK_NOTIFS.map(n => (
+              <div key={n.id} style={studentStyles.notifCard}>
+                <div style={studentStyles.notifTop}>
+                  <h3 style={studentStyles.notifTitle}>{n.title}</h3>
+                  <span style={studentStyles.notifDate}>{n.date}</span>
+                </div>
+                <p style={studentStyles.notifDesc}>{n.description}</p>
+                <div style={studentStyles.tagRow}>
+                  {n.skills.split(',').map(sk => <span key={sk} style={studentStyles.tag}>{sk.trim()}</span>)}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+Object.assign(window, { StudentPortal });
+
+// AdminPortal.jsx
+
+const adminStyles = {
+  root: { display:'flex', height:'100vh', background:'#0d1117', fontFamily:"'Plus Jakarta Sans', sans-serif", overflow:'hidden' },
+  sidebar: { width:230, background:'#161b22', borderRight:'1px solid #21262d', display:'flex', flexDirection:'column', justifyContent:'space-between', padding:'20px 14px', flexShrink:0 },
+  sTop: { display:'flex', flexDirection:'column', gap:20 },
+  logoWrap: { display:'flex', alignItems:'center', gap:10 },
+  logoMark: { width:30, height:30, background:'linear-gradient(135deg,#2dd4bf,#06b6d4)', borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:800, color:'#0d1117', flexShrink:0 },
+  logoText: { fontSize:14, fontWeight:800, color:'#e6edf3' },
+  adminBadge: { display:'flex', alignItems:'center', gap:10, padding:'10px', background:'#1c2333', borderRadius:10, border:'1px solid #21262d' },
+  adminAvatar: { width:34, height:34, borderRadius:9, background:'linear-gradient(135deg,#f59e0b,#d97706)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:15, fontWeight:700, color:'#0d1117', flexShrink:0 },
+  adminName: { fontSize:13, fontWeight:600, color:'#e6edf3' },
+  adminRole: { fontSize:11, color:'#8b949e' },
+  navLabel: { fontSize:10, fontWeight:700, color:'#484f58', textTransform:'uppercase', letterSpacing:'0.07em', padding:'0 10px', marginBottom:3 },
+  nav: { display:'flex', flexDirection:'column', gap:2 },
+  navBtn: { display:'block', width:'100%', textAlign:'left', padding:'8px 10px', borderRadius:7, border:'none', background:'transparent', color:'#8b949e', cursor:'pointer', fontSize:13, fontFamily:"'Plus Jakarta Sans', sans-serif", fontWeight:500 },
+  navBtnActive: { background:'rgba(45,212,191,0.1)', color:'#2dd4bf' },
+  statsGrid: { display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 },
+  statCard: { background:'#1c2333', border:'1px solid #21262d', borderRadius:9, padding:'12px 10px', textAlign:'center' },
+  statNum: { fontSize:20, fontWeight:800, color:'#2dd4bf', lineHeight:1 },
+  statLabel: { fontSize:10, color:'#8b949e', marginTop:4 },
+  logoutBtn: { width:'100%', padding:'8px 10px', border:'1px solid #21262d', borderRadius:8, background:'transparent', color:'#484f58', cursor:'pointer', fontSize:12, fontFamily:"'Plus Jakarta Sans', sans-serif" },
+  main: { flex:1, overflow:'auto' },
+  content: { padding:'32px 36px', maxWidth:820 },
+  pageTitle: { fontSize:20, fontWeight:700, color:'#e6edf3', margin:'0 0 6px' },
+  pageSub: { fontSize:13, color:'#8b949e', margin:'0 0 24px', lineHeight:1.5 },
+  searchBar: { display:'flex', gap:10, marginBottom:14 },
+  searchInput: { flex:1, padding:'10px 16px', background:'#161b22', border:'1px solid #30363d', borderRadius:9, color:'#e6edf3', fontSize:14, fontFamily:"'Plus Jakarta Sans', sans-serif", outline:'none' },
+  searchBtn: { padding:'10px 22px', background:'linear-gradient(135deg,#2dd4bf,#0891b2)', border:'none', borderRadius:9, color:'#0d1117', fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:"'Plus Jakarta Sans', sans-serif", flexShrink:0 },
+  quickRow: { display:'flex', gap:7, marginBottom:22, flexWrap:'wrap', alignItems:'center' },
+  quickLabel: { fontSize:12, color:'#484f58' },
+  quickChip: { padding:'4px 12px', border:'1px solid #21262d', borderRadius:20, background:'transparent', color:'#8b949e', fontSize:12, cursor:'pointer', fontFamily:"'Plus Jakarta Sans', sans-serif" },
+  resultsLabel: { fontSize:12, color:'#8b949e', marginBottom:12 },
+  candidateList: { display:'flex', flexDirection:'column', gap:10 },
+  candidateCard: { background:'#161b22', border:'1px solid #21262d', borderRadius:12, padding:'18px 22px' },
+  candidateTop: { display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:10 },
+  candidateLeft: { display:'flex', alignItems:'center', gap:12 },
+  rankBadge: { width:32, height:32, borderRadius:'50%', background:'rgba(45,212,191,0.1)', color:'#2dd4bf', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:800, flexShrink:0 },
+  candidateName: { fontSize:15, fontWeight:700, color:'#e6edf3', marginBottom:2 },
+  candidateMeta: { fontSize:12, color:'#8b949e' },
+  scoreWrap: { textAlign:'right' },
+  scoreFrac: { fontSize:20, fontWeight:800, color:'#2dd4bf', lineHeight:1 },
+  scoreLabel: { fontSize:10, color:'#484f58', marginTop:2 },
+  matchBar: { height:3, background:'#21262d', borderRadius:2, marginBottom:12 },
+  matchFill: { height:'100%', background:'linear-gradient(90deg,#2dd4bf,#0891b2)', borderRadius:2, transition:'width 0.5s ease' },
+  tagRow: { display:'flex', flexWrap:'wrap', gap:5 },
+  tag: { fontSize:11, padding:'2px 9px', background:'rgba(45,212,191,0.07)', color:'#2dd4bf', borderRadius:20, border:'1px solid rgba(45,212,191,0.12)' },
+  tagMatch: { background:'rgba(45,212,191,0.2)', borderColor:'rgba(45,212,191,0.4)', fontWeight:700 },
+  emptyBox: { textAlign:'center', padding:'40px', color:'#484f58', background:'#161b22', borderRadius:12, border:'1px solid #21262d' },
+  dashedBox: { textAlign:'center', padding:'40px', color:'#8b949e', border:'1px dashed #21262d', borderRadius:12 },
+  postForm: { background:'#161b22', border:'1px solid #21262d', borderRadius:12, padding:'28px', maxWidth:580 },
+  fGroup: { marginBottom:18 },
+  fLabel: { display:'block', fontSize:11, fontWeight:700, color:'#8b949e', textTransform:'uppercase', letterSpacing:'0.05em', marginBottom:7 },
+  fHint: { fontWeight:400, textTransform:'none', letterSpacing:0, color:'#484f58' },
+  fInput: { width:'100%', padding:'10px 14px', background:'#0d1117', border:'1px solid #30363d', borderRadius:8, color:'#e6edf3', fontSize:14, fontFamily:"'Plus Jakarta Sans', sans-serif", boxSizing:'border-box', outline:'none' },
+  fTextarea: { width:'100%', padding:'10px 14px', background:'#0d1117', border:'1px solid #30363d', borderRadius:8, color:'#e6edf3', fontSize:14, fontFamily:"'Plus Jakarta Sans', sans-serif", boxSizing:'border-box', outline:'none', minHeight:90, resize:'vertical', lineHeight:1.55 },
+  postBtn: { padding:'11px 28px', border:'none', borderRadius:9, color:'#0d1117', fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:"'Plus Jakarta Sans', sans-serif", transition:'background 0.3s' },
+  notifCard: { background:'#161b22', border:'1px solid #21262d', borderRadius:12, padding:'18px 22px', marginBottom:10 },
+  notifTop: { display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:8 },
+  notifTitle: { fontSize:15, fontWeight:700, color:'#e6edf3', marginBottom:2 },
+  notifDate: { fontSize:11, color:'#484f58' },
+  notifDesc: { fontSize:13, color:'#8b949e', margin:'0 0 10px', lineHeight:1.5 },
+  deleteBtn: { padding:'5px 12px', border:'1px solid rgba(248,81,73,0.25)', borderRadius:6, background:'rgba(248,81,73,0.07)', color:'#f85149', cursor:'pointer', fontSize:12, fontFamily:"'Plus Jakarta Sans', sans-serif", flexShrink:0 },
+};
+
+const AdminPortal = ({ onLogout }) => {
+  const [activeNav, setActiveNav] = React.useState('search');
+  const [query, setQuery] = React.useState('');
+  const [results, setResults] = React.useState([]);
+  const [searched, setSearched] = React.useState(false);
+  const [notifications, setNotifications] = React.useState([]);
+  const [postTitle, setPostTitle] = React.useState('');
+  const [postSkills, setPostSkills] = React.useState('');
+  const [postDesc, setPostDesc] = React.useState('');
+  const [postMsg, setPostMsg] = React.useState('');
+
+  // Fetch candidates from Django backend
+  const handleSearch = async () => {
+    if (!query.trim()) return;
+    setSearched(true);
+    try {
+      const res = await fetch(`/searchusers/?keyword=${encodeURIComponent(query)}`);
+      const data = await res.json();
+      setResults(data);
+    } catch {
+      // fallback: empty
+      setResults([]);
+    }
+  };
+
+  const handlePost = async (e) => {
+    e.preventDefault();
+    try {
+      await fetch(`/addnotificationaction?title=${encodeURIComponent(postTitle)}&skills=${encodeURIComponent(postSkills)}&description=${encodeURIComponent(postDesc)}`);
+      setPostMsg('Job posted successfully!');
+      setPostTitle(''); setPostSkills(''); setPostDesc('');
+    } catch {
+      setPostMsg('Failed to post job.');
+    }
+  };
+
+  const skillList = query.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+
+  const navItems = [
+    { id:'search', label:'Search Candidates' },
+    { id:'post', label:'Post a Job' },
+    { id:'jobs', label:'Job Board' },
+  ];
+
+  return (
+    <div style={adminStyles.root}>
+      <div style={adminStyles.sidebar}>
+        <div style={adminStyles.sTop}>
+          <div style={adminStyles.logoWrap}>
+            <div style={adminStyles.logoMark}>R</div>
+            <span style={adminStyles.logoText}>ResumeRanking</span>
+          </div>
+          <div style={adminStyles.adminBadge}>
+            <div style={adminStyles.adminAvatar}>A</div>
+            <div>
+              <div style={adminStyles.adminName}>Recruiter</div>
+              <div style={adminStyles.adminRole}>Admin</div>
+            </div>
+          </div>
+          <div>
+            <div style={adminStyles.navLabel}>Menu</div>
+            <div style={adminStyles.nav}>
+              {navItems.map(n => (
+                <button key={n.id} style={{ ...adminStyles.navBtn, ...(activeNav===n.id ? adminStyles.navBtnActive : {}) }}
+                  onClick={() => setActiveNav(n.id)}>{n.label}</button>
+              ))}
+            </div>
+          </div>
+        </div>
+        <button style={adminStyles.logoutBtn} onClick={onLogout}>Sign Out</button>
+      </div>
+
+      <div style={adminStyles.main}>
+        <div style={adminStyles.content}>
+          {activeNav === 'search' && <>
+            <h1 style={adminStyles.pageTitle}>Find Candidates</h1>
+            <p style={adminStyles.pageSub}>Search registered students by skill. Results are ranked by match score.</p>
+            <div style={adminStyles.searchBar}>
+              <input style={adminStyles.searchInput} value={query} onChange={e => setQuery(e.target.value)}
+                placeholder="e.g. Python, Django, React" onKeyDown={e => e.key==='Enter' && handleSearch()} />
+              <button style={adminStyles.searchBtn} onClick={handleSearch}>Search</button>
+            </div>
+            {searched && (
+              results.length === 0
+                ? <div style={adminStyles.emptyBox}>No candidates found for those skills.</div>
+                : <>
+                  <div style={adminStyles.resultsLabel}>{results.length} candidate{results.length!==1?'s':''} found</div>
+                  <div style={adminStyles.candidateList}>
+                    {results.map((c, i) => {
+                      const cSkills = (c.skills||'').split(',').map(s=>s.trim().toLowerCase());
+                      const pct = skillList.length ? Math.round((c.score/skillList.length)*100) : 0;
+                      return (
+                        <div key={c.email} style={adminStyles.candidateCard}>
+                          <div style={adminStyles.candidateTop}>
+                            <div style={adminStyles.candidateLeft}>
+                              <div style={adminStyles.rankBadge}>#{i+1}</div>
+                              <div>
+                                <div style={adminStyles.candidateName}>{c.name}</div>
+                                <div style={adminStyles.candidateMeta}>{c.email}{c.currentworkingcompany ? ` · ${c.currentworkingcompany}` : ''}</div>
+                              </div>
+                            </div>
+                            <div style={adminStyles.scoreWrap}>
+                              <div style={adminStyles.scoreFrac}>{c.score}<span style={{fontSize:12,color:'#484f58'}}>/{skillList.length}</span></div>
+                              <div style={adminStyles.scoreLabel}>skills matched</div>
+                            </div>
+                          </div>
+                          <div style={adminStyles.matchBar}><div style={{ ...adminStyles.matchFill, width:`${pct}%` }} /></div>
+                          <div style={adminStyles.tagRow}>
+                            {cSkills.map(s => (
+                              <span key={s} style={{ ...adminStyles.tag, ...(skillList.includes(s) ? adminStyles.tagMatch : {}) }}>{s}</span>
+                            ))}
+                          </div>
+                          <a href={`/download?email=${c.email}`} style={{display:'inline-block',marginTop:12,fontSize:12,color:'#2dd4bf'}}>Download Resume PDF →</a>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+            )}
+            {!searched && <div style={adminStyles.dashedBox}>Enter skills above to find matching candidates</div>}
+          </>}
+
+          {activeNav === 'post' && <>
+            <h1 style={adminStyles.pageTitle}>Post a Job</h1>
+            <p style={adminStyles.pageSub}>Students will be matched based on their registered skills.</p>
+            {postMsg && <div style={{marginBottom:16,padding:'10px 14px',background:'rgba(45,212,191,0.08)',border:'1px solid rgba(45,212,191,0.2)',borderRadius:8,color:'#2dd4bf',fontSize:13}}>{postMsg}</div>}
+            <form style={adminStyles.postForm} onSubmit={handlePost}>
+              <div style={adminStyles.fGroup}>
+                <label style={adminStyles.fLabel}>Job Title</label>
+                <input style={adminStyles.fInput} value={postTitle} onChange={e=>setPostTitle(e.target.value)} placeholder="e.g. Backend Engineer" required />
+              </div>
+              <div style={adminStyles.fGroup}>
+                <label style={adminStyles.fLabel}>Required Skills <span style={adminStyles.fHint}>— comma separated</span></label>
+                <input style={adminStyles.fInput} value={postSkills} onChange={e=>setPostSkills(e.target.value)} placeholder="Python, Django, SQL" required />
+              </div>
+              <div style={adminStyles.fGroup}>
+                <label style={adminStyles.fLabel}>Description</label>
+                <textarea style={adminStyles.fTextarea} value={postDesc} onChange={e=>setPostDesc(e.target.value)} placeholder="Describe the role..." required />
+              </div>
+              <button type="submit" style={{ ...adminStyles.postBtn, background:'linear-gradient(135deg,#2dd4bf,#0891b2)' }}>Post Job</button>
+            </form>
+          </>}
+
+          {activeNav === 'jobs' && <>
+            <h1 style={adminStyles.pageTitle}>Job Board</h1>
+            <p style={adminStyles.pageSub}>All active job postings.</p>
+            {notifications.length === 0
+              ? <div style={adminStyles.dashedBox}>No jobs posted yet. <button style={{background:'none',border:'none',color:'#2dd4bf',cursor:'pointer',fontSize:13}} onClick={()=>setActiveNav('post')}>Post one →</button></div>
+              : notifications.map(n => (
+                <div key={n.id} style={adminStyles.notifCard}>
+                  <div style={adminStyles.notifTop}>
+                    <div>
+                      <div style={adminStyles.notifTitle}>{n.title}</div>
+                      <div style={adminStyles.notifDate}>{n.date}</div>
+                    </div>
+                    <button style={adminStyles.deleteBtn} onClick={() => setNotifications(prev => prev.filter(x=>x.id!==n.id))}>Delete</button>
+                  </div>
+                  <p style={adminStyles.notifDesc}>{n.description}</p>
+                  <div style={adminStyles.tagRow}>{(n.skills||'').split(',').map(s=><span key={s} style={adminStyles.tag}>{s.trim()}</span>)}</div>
+                </div>
+              ))
+            }
+          </>}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+Object.assign(window, { AdminPortal });
+
+
+  const TWEAK_DEFAULTS = { resumeTemplate: "modern", accentColor: "#2dd4bf" };
+
+  function App() {
+    const [user, setUser] = React.useState(() => {
+      try { const u = sessionStorage.getItem('rb_user'); return u ? JSON.parse(u) : null; } catch { return null; }
+    });
+    const tweaks = { ...TWEAK_DEFAULTS };
+    const login = (u) => { sessionStorage.setItem('rb_user', JSON.stringify(u)); setUser(u); };
+    const logout = () => { sessionStorage.removeItem('rb_user'); setUser(null); };
+    if (!user) return <LoginScreen onLogin={login} />;
+    if (user.role === 'admin') return <AdminPortal onLogout={logout} />;
+    return <StudentPortal user={user} onLogout={logout} tweaks={tweaks} />;
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
