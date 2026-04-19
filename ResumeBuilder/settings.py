@@ -6,7 +6,7 @@ STATIC_DIR1 = os.path.join(BASE_DIR, "static")
 STATIC_DIR2 = os.path.join(BASE_DIR, "images")
 
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-change-me-in-production')
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+DEBUG = True
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
 
 INSTALLED_APPS = [
@@ -30,7 +30,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'resumebuilder.urls'
+ROOT_URLCONF = 'ResumeBuilder.urls'
 
 TEMPLATES = [{
     'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -44,7 +44,7 @@ TEMPLATES = [{
     ]},
 }]
 
-WSGI_APPLICATION = 'resumebuilder.wsgi.application'
+WSGI_APPLICATION = 'ResumeBuilder.wsgi.application'
 
 DATABASES = {
     'default': {
@@ -61,7 +61,8 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [STATIC_DIR1, STATIC_DIR2]
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage' if not DEBUG else 'django.contrib.staticfiles.storage.StaticFilesStorage'
+WHITENOISE_USE_FINDERS = True
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

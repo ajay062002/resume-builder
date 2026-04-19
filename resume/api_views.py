@@ -11,7 +11,7 @@ def api_csrf(request):
 
 @csrf_exempt
 def api_login(request):
-    if request.method \!= 'POST':
+    if request.method != 'POST':
         return JsonResponse({'error': 'POST required'}, status=405)
     data = json.loads(request.body)
     username = data.get('username', '')
@@ -34,7 +34,7 @@ def api_logout(request):
 
 @csrf_exempt
 def api_register(request):
-    if request.method \!= 'POST':
+    if request.method != 'POST':
         return JsonResponse({'error': 'POST required'}, status=405)
     data = request.POST
     files = request.FILES
@@ -60,7 +60,7 @@ def api_register(request):
     return JsonResponse({'success': True, 'name': user.name, 'email': user.email})
 
 def api_profile(request):
-    if not request.session.get('username') or request.session.get('role') \!= 'user':
+    if not request.session.get('username') or request.session.get('role') != 'user':
         return JsonResponse({'error': 'Not authenticated'}, status=401)
     try:
         user = UserModel.objects.get(email=request.session['username'])
@@ -89,7 +89,7 @@ def api_profile(request):
 
 @csrf_exempt
 def api_update_profile(request):
-    if request.method \!= 'POST':
+    if request.method != 'POST':
         return JsonResponse({'error': 'POST required'}, status=405)
     if not request.session.get('username'):
         return JsonResponse({'error': 'Not authenticated'}, status=401)
@@ -116,7 +116,7 @@ def api_update_profile(request):
     return JsonResponse({'success': True})
 
 def api_search(request):
-    if request.session.get('role') \!= 'admin':
+    if request.session.get('role') != 'admin':
         return JsonResponse({'error': 'Admin only'}, status=403)
     keyword = request.GET.get('keyword', '')
     skills = [s.strip().lower() for s in keyword.split(',') if s.strip()]
@@ -143,9 +143,9 @@ def api_notifications(request):
 
 @csrf_exempt
 def api_add_notification(request):
-    if request.method \!= 'POST':
+    if request.method != 'POST':
         return JsonResponse({'error': 'POST required'}, status=405)
-    if request.session.get('role') \!= 'admin':
+    if request.session.get('role') != 'admin':
         return JsonResponse({'error': 'Admin only'}, status=403)
     data = json.loads(request.body)
     NotificationModel(
@@ -158,7 +158,22 @@ def api_add_notification(request):
 
 @csrf_exempt
 def api_delete_notification(request, notif_id):
-    if request.session.get('role') \!= 'admin':
+    if request.session.get('role') != 'admin':
         return JsonResponse({'error': 'Admin only'}, status=403)
     NotificationModel.objects.filter(id=notif_id).delete()
     return JsonResponse({'success': True})
+
+@csrf_exempt
+def api_upload_pic(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    if not request.session.get('username'):
+        return JsonResponse({'error': 'Not authenticated'}, status=401)
+    if 'pic' not in request.FILES:
+        return JsonResponse({'error': 'No file uploaded'}, status=400)
+    user = UserModel.objects.filter(email=request.session['username']).first()
+    if not user:
+        return JsonResponse({'error': 'User not found'}, status=404)
+    user.pic = request.FILES['pic']
+    user.save()
+    return JsonResponse({'success': True, 'pic': str(user.pic).split('/')[-1]})

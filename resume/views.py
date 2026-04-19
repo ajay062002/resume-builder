@@ -197,99 +197,217 @@ def searchUsers(request):
 #================================================================================
 
 def download(request):
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.units import mm, inch
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable, Image as RLImage
+    from reportlab.lib.styles import ParagraphStyle
+    from reportlab.lib import colors
+    from reportlab.lib.enums import TA_CENTER, TA_LEFT
 
-    user=UserModel.objects.filter(email=request.GET['email']).first()
+    user = UserModel.objects.filter(email=request.GET['email']).first()
 
-    certificate = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "generated", user.email + ".pdf")
-    c = canvas.Canvas(certificate)
+    generated_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "generated")
+    os.makedirs(generated_dir, exist_ok=True)
+    certificate = os.path.join(generated_dir, user.email + ".pdf")
 
-    c.setFillColor(HexColor('#FF3C33'))
-    c.setFont("Helvetica", 15)  # choose your font type and font size
-    c.drawString(280, 800, "Resume")  # write your text
-    c.setFillColor(HexColor('#2A06F2'))
-    c.setFont("Helvetica", 13)  # choose your font type and font size
-    c.drawString(100, 750, user.name)  # write your text
+    PAGE_W, PAGE_H = A4
+    LM = RM = 20*mm
+    TM = BM = 15*mm
+    W = PAGE_W - LM - RM
 
-    c.setFont("Helvetica", 20)  # choose your font type and font size
-    c.drawString(100, 735, "----------------------------------------------------------------")  # write your text
+    BLACK  = HexColor('#000000')
+    DARK   = HexColor('#1a1a1a')
+    GREY   = HexColor('#444444')
+    LTGREY = HexColor('#666666')
+    BLUE   = HexColor('#1a56db')
 
-    c.setFillColor(HexColor('#0A0505'))  # choose your font colour
-    c.setFont("Helvetica", 10)  # choose your font type and font size
-    c.drawString(100, 720, "Email:"+str(user.email))  # write your text
-    c.drawString(100, 700, "Mobile:"+str(user.mobile))  # write your text
-    c.drawString(100, 680, "Address:"+str(user.address))
-    c.drawString(100, 660, "Gender:"+str(user.gender))  # write your text
-    c.drawString(100, 640, "Date of Birth:"+str(user.dob))  # write your text
-    c.drawString(100, 620, "Nationality:"+str(user.nationality))  # write your text
-    c.drawString(100, 600, "Languages Known:"+str(user.languages))  # write your text
+    def S(name, **kw):
+        kw.setdefault('fontName', 'Helvetica')
+        kw.setdefault('textColor', DARK)
+        kw.setdefault('fontSize', 10)
+        kw.setdefault('leading', 14)
+        return ParagraphStyle(name, **kw)
 
-    c.drawImage(constants.imagepath+str(user.pic).split('/')[-1], 400, 610, width=120, height=120)
+    sName    = S('nm', fontName='Helvetica-Bold', fontSize=22, leading=26, textColor=BLACK)
+    sContact = S('ct', fontSize=9, textColor=GREY, leading=13, spaceAfter=4)
+    sSecHdr  = S('sh', fontName='Helvetica-Bold', fontSize=11, textColor=BLACK,
+                  leading=14, spaceBefore=10, spaceAfter=2,
+                  underlineWidth=0.5, underlineColor=BLACK)
+    sBody    = S('bd', fontSize=9.5, textColor=DARK, leading=14)
+    sBullet  = S('bl', fontSize=9.5, textColor=DARK, leading=14, leftIndent=12, firstLineIndent=-12, spaceAfter=2)
+    sLabel   = S('lb', fontName='Helvetica-Bold', fontSize=9.5, textColor=DARK, leading=14)
+    sEnv     = S('ev', fontSize=9, textColor=GREY, leading=13, spaceBefore=4)
 
-    ##  =========================================================================================================
+    def val_ok(v):
+        return v and str(v).strip() not in ('', 'None', 'none')
 
-    c.setFillColor(HexColor('#2A06F2'))
-    c.setFont("Helvetica", 10)  # choose your font type and font size
-    c.drawString(270, 570, "Academic Summary")  # write your text
+    def section_hdr(title):
+        return [
+            Paragraph(f'<u><b>{title}</b></u>', sSecHdr),
+            HRFlowable(width=W, thickness=0.6, color=BLACK, spaceAfter=5),
+        ]
 
-    c.setFont("Helvetica", 20)  # choose your font type and font size
-    c.drawString(100, 560, "----------------------------------------------------------------")  # write your text
+    def bullet(text):
+        return Paragraph(f'• &nbsp;{text}', sBullet)
 
-    c.setFillColor(HexColor('#0A0505'))  # choose your font colour
-    c.setFont("Helvetica", 10)  # choose your font type and font size
-    c.drawString(100, 550, "Degree Percentage :"+str(user.degreepercentage))  # write your text
-    c.drawString(100, 530, "Degree Branch :"+str(user.degreebranch))  # write your text
-    c.drawString(100, 510, "Intermediate Percentage :"+str(user.intermediatepercentage))
-    c.drawString(100, 490, "Intermediate Branch :"+str(user.intermediatebranch))  # write your text
-    c.drawString(100, 470, "SSC Percentage :"+str(user.sscpercentage))  # write your text
+    def two_col_row(left, right):
+        return Table(
+            [[Paragraph(f'<b>{left}</b>', sLabel), Paragraph(str(right), sBody)]],
+            colWidths=[48*mm, W - 48*mm],
+            style=TableStyle([
+                ('VALIGN', (0,0), (-1,-1), 'TOP'),
+                ('TOPPADDING', (0,0), (-1,-1), 2),
+                ('BOTTOMPADDING', (0,0), (-1,-1), 2),
+                ('LEFTPADDING', (0,0), (-1,-1), 0),
+                ('RIGHTPADDING', (0,0), (-1,-1), 0),
+            ])
+        )
 
-    ##  =========================================================================================================
+    story = []
 
-    c.setFillColor(HexColor('#2A06F2'))
-    c.setFont("Helvetica", 10)  # choose your font type and font size
-    c.drawString(270, 450, "Key Strengths")  # write your text
+    # ── HEADER ───────────────────────────────────────────────────────────────
+    pic_path = None
+    if user.pic:
+        from django.conf import settings
+        p = os.path.join(settings.MEDIA_ROOT, str(user.pic))
+        if os.path.exists(p): pic_path = p
 
-    c.setFont("Helvetica", 20)  # choose your font type and font size
-    c.drawString(100, 440, "----------------------------------------------------------------")  # write your text
+    name_block = [
+        Paragraph(str(user.name or ''), sName),
+    ]
+    contacts = []
+    if val_ok(user.email):   contacts.append(str(user.email))
+    if val_ok(user.mobile):  contacts.append(str(user.mobile))
+    if val_ok(user.address): contacts.append(str(user.address))
+    if contacts:
+        name_block.append(Paragraph('   |   '.join(contacts), sContact))
 
-    c.setFillColor(HexColor('#0A0505'))  # choose your font colour
-    c.setFont("Helvetica", 10)  # choose your font type and font size
-    c.drawString(100, 430,"Career Objective :"+str(user.careerobjective))  # write your text
-    c.drawString(100, 410, "Skills :"+str(user.skills))  # write your text
-    c.drawString(100, 390, "Personal Strengths :"+str(user.personalstrengths))
-    c.drawString(100, 370, "Professional Strengths :"+str(user.professionalstrengths))  # write your text
+    if pic_path:
+        img = RLImage(pic_path, width=28*mm, height=28*mm)
+        hdr = Table(
+            [[name_block, img]],
+            colWidths=[W - 32*mm, 32*mm],
+            style=TableStyle([
+                ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+                ('ALIGN',  (1,0), (1,0),   'RIGHT'),
+                ('LEFTPADDING',  (0,0), (-1,-1), 0),
+                ('RIGHTPADDING', (0,0), (-1,-1), 0),
+                ('TOPPADDING',   (0,0), (-1,-1), 0),
+                ('BOTTOMPADDING',(0,0), (-1,-1), 0),
+            ])
+        )
+        story.append(hdr)
+    else:
+        for item in name_block:
+            story.append(item)
 
-    ##  =========================================================================================================
+    story.append(HRFlowable(width=W, thickness=1.2, color=BLACK, spaceAfter=6))
 
-    c.setFillColor(HexColor('#2A06F2'))
-    c.setFont("Helvetica", 10)  # choose your font type and font size
-    c.drawString(270, 340, "Projects Handled")  # write your text
+    # ── CAREER OBJECTIVE / PROFESSIONAL SUMMARY ───────────────────────────────
+    if val_ok(user.careerobjective):
+        story += section_hdr('Professional Summary')
+        for line in str(user.careerobjective).split('\n'):
+            if line.strip():
+                story.append(bullet(line.strip()))
+        story.append(Spacer(1, 4))
 
-    c.setFont("Helvetica", 20)  # choose your font type and font size
-    c.drawString(100, 330, "----------------------------------------------------------------")  # write your text
+    # ── EDUCATION ─────────────────────────────────────────────────────────────
+    has_edu = any(val_ok(v) for v in [user.degreebranch, user.degreepercentage,
+                  user.intermediatebranch, user.intermediatepercentage, user.sscpercentage])
+    if has_edu:
+        story += section_hdr('Education')
+        edu_data = []
+        if val_ok(user.degreebranch) or val_ok(user.degreepercentage):
+            d = str(user.degreebranch or '')
+            p = (' — ' + str(user.degreepercentage) + '%') if val_ok(user.degreepercentage) else ''
+            edu_data.append(('Degree', d + p))
+        if val_ok(user.intermediatebranch) or val_ok(user.intermediatepercentage):
+            d = str(user.intermediatebranch or '')
+            p = (' — ' + str(user.intermediatepercentage) + '%') if val_ok(user.intermediatepercentage) else ''
+            edu_data.append(('Intermediate (12th)', d + p))
+        if val_ok(user.sscpercentage):
+            edu_data.append(('SSC (10th)', str(user.sscpercentage) + '%'))
+        for lbl, val in edu_data:
+            story.append(two_col_row(lbl, val))
+        story.append(Spacer(1, 4))
 
-    c.setFillColor(HexColor('#0A0505'))  # choose your font colour
-    c.setFont("Helvetica", 10)  # choose your font type and font size
-    c.drawString(100, 320, "Project Title :"+str(user.projecttitle))  # write your text
-    c.drawString(100, 300, "Project Description :"+str(user.projectdescription))  # write your text
+    # ── TECHNICAL SKILLS ──────────────────────────────────────────────────────
+    if val_ok(user.skills):
+        story += section_hdr('Technical Skills')
+        skills_list = [s.strip() for s in str(user.skills).replace('\n', ',').split(',') if s.strip()]
+        if skills_list:
+            # Make a 3-column grid of skills
+            cols = 3
+            rows_data = []
+            row_cells = []
+            skill_style = S('sk', fontSize=9.5, textColor=DARK, leading=14)
+            for i, sk in enumerate(skills_list):
+                row_cells.append(Paragraph(f'• {sk}', skill_style))
+                if len(row_cells) == cols:
+                    rows_data.append(row_cells)
+                    row_cells = []
+            if row_cells:
+                while len(row_cells) < cols:
+                    row_cells.append(Paragraph('', skill_style))
+                rows_data.append(row_cells)
+            col_w = W / cols
+            skill_table = Table(rows_data, colWidths=[col_w]*cols,
+                style=TableStyle([
+                    ('VALIGN', (0,0), (-1,-1), 'TOP'),
+                    ('TOPPADDING', (0,0), (-1,-1), 2),
+                    ('BOTTOMPADDING', (0,0), (-1,-1), 2),
+                    ('LEFTPADDING', (0,0), (-1,-1), 0),
+                    ('RIGHTPADDING', (0,0), (-1,-1), 4),
+                ]))
+            story.append(skill_table)
+        story.append(Spacer(1, 4))
 
-    ##  =========================================================================================================
+    # ── KEY STRENGTHS ────────────────────────────────────────────────────────
+    has_strengths = val_ok(user.personalstrengths) or val_ok(user.professionalstrengths)
+    if has_strengths:
+        story += section_hdr('Key Strengths')
+        if val_ok(user.personalstrengths):
+            story.append(two_col_row('Personal', str(user.personalstrengths)))
+        if val_ok(user.professionalstrengths):
+            story.append(two_col_row('Professional', str(user.professionalstrengths)))
+        story.append(Spacer(1, 4))
 
-    c.setFillColor(HexColor('#2A06F2'))
-    c.setFont("Helvetica", 10)  # choose your font type and font size
-    c.drawString(270, 270, "Experience Info")  # write your text
+    # ── PROJECTS ─────────────────────────────────────────────────────────────
+    if val_ok(user.projecttitle) or val_ok(user.projectdescription):
+        story += section_hdr('Projects')
+        if val_ok(user.projecttitle):
+            story.append(Paragraph(f'<b>{user.projecttitle}</b>', sBody))
+        if val_ok(user.projectdescription):
+            for line in str(user.projectdescription).split('\n'):
+                if line.strip():
+                    story.append(bullet(line.strip()))
+        story.append(Spacer(1, 4))
 
-    c.setFont("Helvetica", 20)  # choose your font type and font size
-    c.drawString(100, 260, "----------------------------------------------------------------")  # write your text
+    # ── EXPERIENCE ────────────────────────────────────────────────────────────
+    if val_ok(user.currentworkingcompany) or val_ok(user.yearofExperience):
+        story += section_hdr('Professional Experience')
+        if val_ok(user.currentworkingcompany):
+            story.append(Paragraph(f'<b>Current Company:</b> {user.currentworkingcompany}', sBody))
+        if val_ok(user.yearofExperience):
+            story.append(Paragraph(f'<b>Years of Experience:</b> {user.yearofExperience}', sBody))
 
-    c.setFillColor(HexColor('#0A0505'))  # choose your font colour
-    c.setFont("Helvetica", 10)  # choose your font type and font size
-    c.drawString(100, 250, "Years of Experience :"+str(user.yearofExperience))  # write your text
-    c.drawString(100, 230, "Current Working Company :"+str(user.currentworkingcompany))  # write your text
+    # ── PERSONAL INFO ────────────────────────────────────────────────────────
+    personal = [(f, getattr(user, a, '')) for f, a in [
+        ('Date of Birth', 'dob'), ('Gender', 'gender'),
+        ('Nationality', 'nationality'), ('Languages Known', 'languages')
+    ]]
+    if any(val_ok(v) for _, v in personal):
+        story += section_hdr('Personal Information')
+        for lbl, val in personal:
+            if val_ok(val):
+                story.append(two_col_row(lbl, str(val)))
 
-    c.showPage()
-    c.save()
+    doc = SimpleDocTemplate(certificate, pagesize=A4,
+        leftMargin=LM, rightMargin=RM, topMargin=TM, bottomMargin=BM)
+    doc.build(story)
 
-    response = FileResponse(open(certificate, 'rb'))
+    response = FileResponse(open(certificate, 'rb'), content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{user.name or user.email}_resume.pdf"'
     return response
 
 #============================================================================
@@ -315,4 +433,5 @@ def deletenotification(request):
     notificationid = request.GET['notificationid']
     NotificationModel.objects.get(id=notificationid).delete()
 
-    return render(request, "viewnotifications.html", {"notifications": NotificationModel.obj
+    return render(request, "viewnotifications.html", {"notifications": NotificationModel.objects.all()})
+
