@@ -1,33 +1,44 @@
 from django.contrib import admin
 from django.urls import path
-from django.views.generic import TemplateView
-
-from resume.views import login, registration, logout, searchUsers, updateprofile, viewprofile, updatepic, download,addnotification, getnotifications,deletenotification
+from resume import views
+from django.conf import settings
+from django.conf.urls.static import static
+from django.views.generic import RedirectView
+from resume import api_views
 
 urlpatterns = [
-
     path('admin/', admin.site.urls),
 
-    path('',TemplateView.as_view(template_name = 'index.html'),name='login'),
-    path('login/',TemplateView.as_view(template_name = 'index.html'),name='login'),
-    path('loginaction/',login,name='loginaction'),
+    # React UI (main entry point)
+    path('', RedirectView.as_view(url='/static/resume-ranking.html')),
 
-    path('registration/',TemplateView.as_view(template_name = 'registration.html'),name='registration'),
-    path('regaction/',registration,name='regaction'),
+    # Django template pages (kept as fallback)
+    path('login', views.login, name='login'),
+    path('loginaction/', views.login, name='loginaction'),
+    path('registration', views.registration, name='registration'),
+    path('regaction/', views.registration, name='regaction'),
+    path('logout', views.logout, name='logout'),
+    path('viewprofile', views.viewprofile, name='viewprofile'),
+    path('updateprofile/', views.updateprofile, name='updateprofile'),
+    path('updatepic/', views.updatepic, name='updatepic'),
+    path('search', views.searchUsers, name='search'),
+    path('searchusers/', views.searchUsers, name='searchusers'),
+    path('addnotification', views.addnotification, name='addnotification'),
+    path('addnotificationaction', views.addnotification, name='addnotificationaction'),
+    path('getnotifications', views.getnotifications, name='getnotifications'),
+    path('deletenotification', views.deletenotification, name='deletenotification'),
+    path('download', views.download, name='download'),
+    path('download/', views.download),
 
-    path('search/',TemplateView.as_view(template_name="users.html"),name='search'),
-    path('searchusers/',searchUsers,name='searchusers'),
-
-    path('viewprofile/',viewprofile,name='view profile'),
-    path('updateprofile/',updateprofile,name='update profile'),
-    path('updatepic/',updatepic,name='update pic'),
-
-    path('download/',download,name='download'),
-
-    path('logout/',logout,name='logout'),
-
-    path('addnotification/', TemplateView.as_view(template_name='addnotification.html'), name='apply'),
-    path('addnotificationaction/', addnotification, name='add'),
-    path('getnotifications/', getnotifications, name='view'),
-    path('deletenotification/', deletenotification, name='delete'),
-]
+    # JSON API endpoints (for React UI)
+    path('api/csrf/', api_views.api_csrf),
+    path('api/login/', api_views.api_login),
+    path('api/logout/', api_views.api_logout),
+    path('api/register/', api_views.api_register),
+    path('api/profile/', api_views.api_profile),
+    path('api/profile/update/', api_views.api_update_profile),
+    path('api/search/', api_views.api_search),
+    path('api/notifications/', api_views.api_notifications),
+    path('api/notifications/add/', api_views.api_add_notification),
+    path('api/notifications/<int:notif_id>/delete/', api_views.api_delete_notification),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

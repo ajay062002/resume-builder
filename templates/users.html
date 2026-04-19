@@ -1,78 +1,62 @@
-{% load  static%}
-<html>
-
+<\!DOCTYPE html>
+<html lang="en">
 <head>
-<title>Resume Ranking</title>
-<link rel="stylesheet" type="text/css" href="{% static '/style/style.css'%}" title="style" />
+  {% load static %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resume Ranking – Search Candidates</title>
+  <link rel="stylesheet" href="{% static 'style/style.css' %}">
 </head>
 <body>
-	<div id="main">
-		<div id="header">
-			<div id="logo">
-				<div id="logo_text">
-					<!-- class="logo_colour", allows you to change the colour of the text -->
-					<h3>
-						<center><a href="#"><font color="white" size="5">Resume Ranking</font></a></center>
-					</h3>
-					<br/><br/>
-				</div>
-			</div>
-			<div id="menubar">
-				<ul id="menu">
+<nav>
+  <span style="color:#f1f5f9;font-weight:700;font-size:1.05rem;">Resume Ranking</span>
+  <ul>
+    <li><a href="/search">Search</a></li>
+    <li><a href="/addnotification">Post Job</a></li>
+    <li><a href="/getnotifications">View Jobs</a></li>
+    <li><a href="/logout">Logout</a></li>
+  </ul>
+</nav>
 
-                    <li><a href="/search">Search Profile</a></li>
-                    <li><a href="/addnotification">Post Job Notification</a></li>
-                    <li> <a href="/getnotifications">View Jobs</a></li>
-                    <li><a href="/logout">Logout</a></li>
+<div class="container">
+  <h1>Candidate Search</h1>
+  <p style="color:#64748b;font-size:.9rem;margin-top:-12px;margin-bottom:20px;">Find candidates matched by skill</p>
 
-				</ul>
-			</div>
-		</div>
-		<div id="content_header"></div>
-		<div id="site_content">
+  <form action="/searchusers/" method="get" style="background:none;border:none;box-shadow:none;padding:0;margin:0;">
+    {% csrf_token %}
+    <div style="display:flex;gap:12px;align-items:flex-end;">
+      <div style="flex:1;">
+        <label>Search by Skill</label>
+        <input type="text" name="keyword" placeholder="e.g. Python, Django, Java" required style="margin:0;">
+      </div>
+      <input type="submit" value="Search" style="margin:0;height:42px;padding:0 24px;">
+    </div>
+  </form>
 
-			<div id="content">
-
-                <center><h1>Welcome to  <strong>{{request.session.username}}</strong>{{form.non_field_errors}}</h1></center>
-
-				<form name="form" action="/searchusers/">
-					{% csrf_token %}
-					<div class="form_settings">
-						<p>
-							<span>Enter Skill:</span><input class="contact" type="text"
-								name="keyword" required/>
-						</p>
-						<p style="padding-top: 15px">
-							<span>&nbsp;</span><input class="submit" type="submit"
-								name="contact_submitted" value="Search" />
-						</p>
-					</div>
-				</form>
-
-                <table style="width: 100%; border-spacing: 0;">
-
-                    <tr>
-						<td>Name</td>
-                        <td>Mobile</td>
-                        <td>Email</td>
-                        <td>Score</td>
-                        <td>Download Resume</td>
-                    </tr>
-
-                    {% for user in users %}
-                        <tr>
-                            <td>{{user.name}}</td>
-                            <td>{{user.mobile}}</td>
-                            <td>{{user.email}}</td>
-                            <td>{{user.score}}</td>
-                            <td><a href="/download?email={{ user.email }}">download</a></td>
-                        </tr>
-                    {% endfor %}
-
-  				</table>
-
-            </div>
-        </div>
-	</div>
+  {% if users %}
+  <table style="margin-top:28px;">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Mobile</th>
+        <th>Email</th>
+        <th>Match Score</th>
+        <th>Resume</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in users %}
+      <tr>
+        <td><strong>{{ user.name }}</strong></td>
+        <td>{{ user.mobile }}</td>
+        <td>{{ user.email }}</td>
+        <td><span class="score">{{ user.score }}</span></td>
+        <td><a href="/download?email={{ user.email }}">Download PDF</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</div>
 </body>
 </html>

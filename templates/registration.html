@@ -1,99 +1,84 @@
-{% load  static%}
-<!DOCTYPE HTML>
-<html>
-
+<\!DOCTYPE html>
+<html lang="en">
 <head>
-<title>Resume Ranking</title>
-<link rel="stylesheet" type="text/css" href="{% static 'style/style.css'%}" title="style" />
+  {% load static %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resume Ranking – Register</title>
+  <link rel="stylesheet" href="{% static 'style/style.css' %}">
 </head>
-
 <body>
-	<div id="main">
-		<div id="header">
-			<div id="logo">
-				<div id="logo_text">
-					<!-- class="logo_colour", allows you to change the colour of the text -->
-					<h3>
-						<center><a href="#"><font color="white" size="5">Resume Ranking</font></a></center>
-					</h3>
-					<br/><br/>
-				</div>
-			</div>
-			<div id="menubar">
-				<ul id="menu">
-				
-					<li><a href="/login">Home</a></li>
-					<li><a href="/registration">Registration</a></li>
+<nav>
+  <span style="color:#f1f5f9;font-weight:700;font-size:1.05rem;">Resume Ranking</span>
+  <ul>
+    <li><a href="/login">Home</a></li>
+    <li><a href="/registration">Register</a></li>
+  </ul>
+</nav>
 
-				</ul>
-			</div>
-		</div>
-		<div id="content_header"></div>
-		<div id="site_content">
-			<div id="content">
-				
-				<h1>Registration Status : {{message}}</h1>
-				
-				<form name="form" action="/regaction/" method="post" enctype="multipart/form-data">
-					{% csrf_token %}
-					<div class="form_settings">
+<div class="container">
+  {% if message %}
+  <div class="message {% if 'fail' in message|lower or 'error' in message|lower or 'already' in message|lower %}error{% endif %}">
+    {{ message }}
+  </div>
+  {% endif %}
 
-						<p>
-							<span>Name :</span><input class="contact" type="text" name="name" required/>
-						</p>
+  <form action="/regaction/" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <h2>Create Account</h2>
+    <p style="color:#64748b;font-size:.88rem;margin-top:-12px;margin-bottom:8px;">Fill in your details to get started</p>
 
-                        <p>
-							<span>Email :</span><input class="contact" type="email" name="email" required/>
-						</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 20px;">
+      <div>
+        <label>Full Name</label>
+        <input type="text" name="name" placeholder="Ajay Thota" required>
+      </div>
+      <div>
+        <label>Email</label>
+        <input type="email" name="email" placeholder="you@email.com" required>
+      </div>
+      <div>
+        <label>Password</label>
+        <input type="password" name="password" placeholder="Choose a password" required>
+      </div>
+      <div>
+        <label>Mobile</label>
+        <input type="number" name="mobile" placeholder="Phone number" required>
+      </div>
+      <div>
+        <label>Date of Birth</label>
+        <input type="date" name="dob" required>
+      </div>
+      <div>
+        <label>Gender</label>
+        <select name="gender" required>
+          <option value="">-- Select --</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div>
+        <label>Nationality</label>
+        <input type="text" name="nationality" placeholder="e.g. Indian" required>
+      </div>
+      <div>
+        <label>Languages Known</label>
+        <input type="text" name="languages" placeholder="e.g. English, Hindi" required>
+      </div>
+    </div>
 
-						<p>
-							<span>Password :</span><input class="contact" type="password" name="password" required/>
-						</p>
+    <label>Address</label>
+    <textarea name="address" placeholder="Your full address" required></textarea>
 
-						<p>
-							<span>Mobile :</span><input class="contact" type="number" name="mobile" required/>
-						</p>
-						
-						<p>
-							<span>Address :</span><textarea rows="" cols="" name="address" required></textarea>
-						</p>
+    <label>Profile Photo</label>
+    <input type="file" name="pic" accept="image/*" required>
 
-                        <p>
-							<span>Date of Birth :</span><input class="contact" type="date" name="dob" required/>
-						</p>
-
-                        <p>
-							<span>Photo :</span><input class="contact" type="file" name="pic" required/>
-						</p>
-
-                        <p>
-							<span>Nationality :</span><input class="contact" type="text" name="nationality" required/>
-						</p>
-
-                        <p>
-							<span>Languages known :</span><input class="contact" type="text" name="languages" required/>
-						</p>
-
-                        <p>
-							<span>Select Gender:</span>
-                            <select name="gender" id="Gender" required="required">
-                                <option value="">--select--</option>
-                                <option value="male">Male</option>
-                                <option value="female">Female</option>
-                                <option value="other">Other</option>
-                            </select>
-						</p>
-
-						<p style="padding-top: 15px">
-							<span>&nbsp;</span><input class="submit" type="submit"
-								name="contact_submitted" value="Register" />
-						</p>
-
-					</div>
-				</form>
-				
-			</div>
-		</div>
-	</div>
+    <input type="submit" value="Create Account" style="width:100%;margin-top:24px;">
+    <p style="text-align:center;margin-top:14px;font-size:.88rem;color:#64748b;">
+      Already have an account? <a href="/login">Sign in</a>
+    </p>
+  </form>
+</div>
 </body>
 </html>

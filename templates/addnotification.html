@@ -1,66 +1,45 @@
-{% load  static%}
-<!DOCTYPE HTML>
-<html>
-
+<\!DOCTYPE html>
+<html lang="en">
 <head>
-<title>Resume Ranking</title>
-<link rel="stylesheet" type="text/css" href="{% static 'style/style.css'%}" title="style" />
+  {% load static %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resume Ranking – Post Job</title>
+  <link rel="stylesheet" href="{% static 'style/style.css' %}">
 </head>
-
 <body>
-	<div id="main">
-		<div id="header">
-			<div id="logo">
-				<div id="logo_text">
-					<!-- class="logo_colour", allows you to change the colour of the text -->
-					<h3>
-						<center><a href="#"><font color="white" size="5">Resume Ranking</font></a></center>
-					</h3>
-					<br/><br/>
-				</div>
-			</div>
-			<div id="menubar">
-				<ul id="menu">
+<nav>
+  <span style="color:#f1f5f9;font-weight:700;font-size:1.05rem;">Resume Ranking</span>
+  <ul>
+    <li><a href="/search">Search</a></li>
+    <li><a href="/addnotification">Post Job</a></li>
+    <li><a href="/getnotifications">View Jobs</a></li>
+    <li><a href="/logout">Logout</a></li>
+  </ul>
+</nav>
 
-                    <li><a href="/search">Search Profile</a></li>
-                    <li><a href="/addnotification">Post Job Notification</a></li>
-                    <li> <a href="/getnotifications">View Jobs</a></li>
-                    <li><a href="/logout">Logout</a></li>
+<div class="container">
+  {% if message %}
+  <div class="message {% if 'fail' in message|lower or 'error' in message|lower %}error{% endif %}">
+    {{ message }}
+  </div>
+  {% endif %}
 
-				</ul>
-			</div>
-		</div>
-		<div id="content_header"></div>
-		<div id="site_content">
-			<div id="content">
+  <form action="/addnotificationaction" method="get" style="max-width:600px;margin:0 auto;">
+    <h2>Post a Job</h2>
+    <p style="color:#64748b;font-size:.88rem;margin-top:-12px;margin-bottom:8px;">Candidates will be matched based on required skills</p>
 
-				<h1>Post Notification : {{message}}</h1>
+    <label>Job Title</label>
+    <input type="text" name="title" placeholder="e.g. Backend Engineer" required>
 
-				<form name="form" action="/addnotificationaction">
-					<div class="form_settings">
+    <label>Required Skills</label>
+    <input type="text" name="skills" placeholder="e.g. Python, Django, SQL (comma separated)" required>
 
-                        <p>
-							<span>Job Title:</span><input class="contact" type="text" name="title" required/>
-						</p>
+    <label>Job Description</label>
+    <textarea name="description" placeholder="Describe the role, responsibilities, and requirements..." style="min-height:120px;" required></textarea>
 
-                        <p>
-							<span>Required Skills:</span><input class="contact" type="text" name="skills" required/>
-						</p>
-
-						<p>
-                            <span>Description :</span><textarea class="contact" name="description" required></textarea>
-						</p>
-
-						<p style="padding-top: 15px">
-							<span>&nbsp;</span><input class="submit" type="submit"
-								name="contact_submitted" value="Post Job Notification" />
-						</p>
-
-					</div>
-				</form>
-
-			</div>
-		</div>
-	</div>
+    <input type="submit" value="Post Job" style="width:100%;margin-top:20px;">
+  </form>
+</div>
 </body>
 </html>

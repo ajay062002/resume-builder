@@ -1,3 +1,4 @@
+import os
 from django.db.models import Q
 from django.http import FileResponse
 from django.shortcuts import render
@@ -199,7 +200,7 @@ def download(request):
 
     user=UserModel.objects.filter(email=request.GET['email']).first()
 
-    certificate="D:\\"+user.email+".pdf"
+    certificate = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "generated", user.email + ".pdf")
     c = canvas.Canvas(certificate)
 
     c.setFillColor(HexColor('#FF3C33'))
@@ -315,3 +316,4 @@ def deletenotification(request):
     NotificationModel.objects.get(id=notificationid).delete()
 
     return render(request, "viewnotifications.html", {"notifications": NotificationModel.objects.all()})
+

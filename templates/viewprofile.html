@@ -1,147 +1,136 @@
-{% load  static%}
-<!DOCTYPE HTML>
-<html>
-
+<\!DOCTYPE html>
+<html lang="en">
 <head>
-<title>Resume Ranking</title>
-<link rel="stylesheet" type="text/css" href="{% static '/style/style.css'%}" title="style" />
+  {% load static %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resume Ranking – Profile</title>
+  <link rel="stylesheet" href="{% static 'style/style.css' %}">
+  <style>
+    .section-title {
+      font-size:.75rem;font-weight:700;text-transform:uppercase;
+      letter-spacing:1px;color:#6AAA40;margin:28px 0 4px;
+    }
+    .divider { border:none;border-top:1px solid #2d3748;margin:4px 0 16px; }
+  </style>
 </head>
 <body>
-	<div id="main">
-		<div id="header">
-			<div id="logo">
-				<div id="logo_text">
-					<!-- class="logo_colour", allows you to change the colour of the text -->
-					<h3>
-						<center><a href="#"><font color="white" size="5">Resume Ranking</font></a></center>
-					</h3>
-					<br/><br/>
-				</div>
-			</div>
-			<div id="menubar">
-				<ul id="menu">
-                    <li> <a href="/getnotifications">View Jobs</a></li>
-                    <li><a href="/viewprofile">Profile</a></li>
-                    <li><a href="/logout">logout</a></li>
-				</ul>
-			</div>
-		</div>
-		<div id="content_header"></div>
-		<div id="site_content">
+<nav>
+  <span style="color:#f1f5f9;font-weight:700;font-size:1.05rem;">Resume Ranking</span>
+  <ul>
+    <li><a href="/viewprofile">Profile</a></li>
+    <li><a href="/getnotifications">Job Board</a></li>
+    <li><a href="/logout">Logout</a></li>
+  </ul>
+</nav>
 
-            <div class="sidebar">
+<div class="container">
+  {% if message %}
+  <div class="message {% if 'fail' in message|lower or 'error' in message|lower %}error{% endif %}">
+    {{ message }}
+  </div>
+  {% endif %}
 
-                <h3>Change Photo</h3>
+  <div class="card" style="display:flex;align-items:center;gap:28px;flex-wrap:wrap;">
+    <img src="{% static '' %}{{ profile.pic }}" class="profile-pic" alt="Profile Photo" style="width:90px;height:90px;">
+    <div style="flex:1;min-width:180px;">
+      <h2 style="border:none;margin-bottom:4px;padding-bottom:0;">{{ profile.name }}</h2>
+      <p style="color:#64748b;font-size:.9rem;">{{ profile.email }}</p>
+      <a href="/download?email={{ profile.email }}" class="btn" style="display:inline-block;margin-top:10px;padding:8px 18px;font-size:.85rem;">Download Resume</a>
+    </div>
+    <form method="post" action="/updatepic/" enctype="multipart/form-data" style="background:none;border:none;box-shadow:none;padding:0;margin:0;min-width:200px;">
+      {% csrf_token %}
+      <label style="margin-top:0;">Change Photo</label>
+      <input type="file" name="pic" accept="image/*" required style="margin-bottom:8px;">
+      <input type="submit" value="Update" style="margin-top:8px;padding:8px 18px;font-size:.85rem;">
+    </form>
+  </div>
 
-                <!-- insert your sidebar items here -->
-                 <form method="post" action="/updatepic/" id="search_form" enctype="multipart/form-data">
-                     {% csrf_token %}
-                  <input type="file" name="pic" value="Select Photo" required/> <br/> <br/> <input type="submit" value="Change" />
-                 </form>
+  <form action="/updateprofile/" method="post">
+    {% csrf_token %}
+    <h2>Update Profile</h2>
 
-                <br/>
+    <p class="section-title">Personal Details</p>
+    <hr class="divider">
+    <label>New Password</label>
+    <input type="password" name="password" placeholder="Leave blank to keep current">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 20px;">
+      <div>
+        <label>Mobile</label>
+        <input type="number" name="mobile" value="{{ profile.mobile }}" required>
+      </div>
+      <div>
+        <label>Languages Known</label>
+        <input type="text" name="languages" value="{{ profile.languages }}" required>
+      </div>
+    </div>
+    <label>Address</label>
+    <textarea name="address" required>{{ profile.address }}</textarea>
 
-                <img src="{% static ''%}{{ profile.pic }}" height="200" width="200">
-                <a href="/download?email={{ profile.email }}" target="_blank">download resume</a>
+    <p class="section-title">Academic Summary</p>
+    <hr class="divider">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 20px;">
+      <div>
+        <label>Degree Percentage</label>
+        <input type="text" name="degreepercentage" value="{{ profile.degreepercentage }}" required>
+      </div>
+      <div>
+        <label>Degree Branch</label>
+        <input type="text" name="degreebranch" value="{{ profile.degreebranch }}" required>
+      </div>
+      <div>
+        <label>Intermediate Percentage</label>
+        <input type="text" name="intermediatepercentage" value="{{ profile.intermediatepercentage }}" required>
+      </div>
+      <div>
+        <label>Intermediate Branch</label>
+        <input type="text" name="intermediatebranch" value="{{ profile.intermediatebranch }}" required>
+      </div>
+      <div>
+        <label>SSC Percentage</label>
+        <input type="text" name="sscpercentage" value="{{ profile.sscpercentage }}" required>
+      </div>
+    </div>
 
-              </div>
+    <p class="section-title">Key Strengths</p>
+    <hr class="divider">
+    <label>Career Objective</label>
+    <textarea name="careerobjective">{{ profile.careerobjective }}</textarea>
+    <label>Skills</label>
+    <textarea name="skills">{{ profile.skills }}</textarea>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 20px;">
+      <div>
+        <label>Personal Strengths</label>
+        <textarea name="personalstrengths">{{ profile.personalstrengths }}</textarea>
+      </div>
+      <div>
+        <label>Professional Strengths</label>
+        <textarea name="professionalstrengths">{{ profile.professionalstrengths }}</textarea>
+      </div>
+    </div>
 
-			<div id="content">
+    <p class="section-title">Projects</p>
+    <hr class="divider">
+    <label>Project Title</label>
+    <input type="text" name="projecttitle" value="{{ profile.projecttitle }}">
+    <label>Project Description</label>
+    <textarea name="projectdescription">{{ profile.projectdescription }}</textarea>
 
-                <center><h1>Update Profile {{message}}</h1></center>
+    <p class="section-title">Experience</p>
+    <hr class="divider">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 20px;">
+      <div>
+        <label>Years of Experience</label>
+        <input type="text" name="yearofExperience" value="{{ profile.yearofExperience }}" required>
+      </div>
+      <div>
+        <label>Current Company</label>
+        <input type="text" name="currentworkingcompany" value="{{ profile.currentworkingcompany }}" required>
+      </div>
+    </div>
 
-				<form name="form" action="/updateprofile/" method="post">
-
-                    {% csrf_token %}
-
-                    <div class="form_settings">
-
-                        <font color="red" size="4"> Personal Details </font> <br/><br/>
-                        <p>
-							<span>Password :</span><input class="contact" type="password" name="password" value={{ profile.password }} required/>
-						</p>
-
-						<p>
-							<span>Mobile :</span><input class="contact" type="number" name="mobile" value={{ profile.mobile }} required />
-						</p>
-
-						<p>
-							<span>Address :</span><textarea rows="" cols="" name="address" required>{{ profile.address }}</textarea>
-						</p>
-
-                        <p>
-							<span>Languages Speak :</span><input class="contact" type="text" name="languages" required value="{{ profile.languages }}"/>
-						</p>
-
-                        <br/><hr/> <font color="red" size="4"> Academic Summary </font> <br/><br/>
-                        <p>
-							<span>Degree Percentage:</span><input class="contact" type="text" name="degreepercentage" value="{{ profile.degreepercentage }}" required/>
-						</p>
-
-						<p>
-							<span>Degree Branch :</span><input class="contact" type="text" name="degreebranch" value="{{ profile.degreebranch }}" required/>
-						</p>
-
-                        <p>
-							<span>Intermediate Percentage:</span><input class="contact" type="text" name="intermediatepercentage" value="{{ profile.intermediatepercentage}}" required/>
-						</p>
-
-						<p>
-							<span>Intermediate Branch :</span><input class="contact" type="text" name="intermediatebranch" value="{{ profile.intermediatebranch }}" required/>
-						</p>
-
-						<p>
-							<span>SSC Percentage :</span><input class="contact" type="text" name="sscpercentage" value="{{ profile.sscpercentage }}" required/>
-						</p>
-
-                        <br/><hr/> <font color="red" size="4"> Key Strengths </font> <br/><br/>
-
-                        <p>
-                            <span>Career Objective :</span><textarea class="contact" rows="" cols="" name="careerobjective">{{ profile.careerobjective }}</textarea>
-						</p>
-
-                        <p>
-                            <span>Skills :</span><textarea class="contact" rows="" cols="" name="skills">{{ profile.skills }}</textarea>
-						</p>
-
-                        <p>
-                            <span>Personal Strengths :</span><textarea class="contact" rows="" cols="" name="personalstrengths">{{ profile.personalstrengths }}</textarea>
-						</p>
-
-                         <p>
-                            <span>Professional Strengths :</span><textarea class="contact" rows="" cols="" name="professionalstrengths">{{ profile.professionalstrengths }}</textarea>
-						</p>
-
-                        <br/><hr/> <font color="red" size="4"> Projects Handled </font> <br/><br/>
-
-                        <p>
-                            <span>Project Title :</span><textarea class="contact" rows="" cols="" name="projecttitle">{{ profile.projecttitle }}</textarea>
-						</p>
-
-                        <p>
-                            <span>Project Description :</span><textarea class="contact" rows="" cols="" name="projectdescription">{{ profile.projectdescription }}</textarea>
-						</p>
-
-                        <br/><hr/> <font color="red" size="4"> Experience Info </font> <br/><br/>
-
-                        <p>
-							<span>Years of Experience :</span><input class="contact" type="text" name="yearofExperience" value="{{ profile.yearofExperience }}" required/>
-						</p>
-
-						<p>
-							<span>Current Working Company :</span><input class="contact" type="text" name="currentworkingcompany" value="{{ profile.currentworkingcompany }}" required/>
-						</p>
-
-						<p style="padding-top: 15px">
-							<span>&nbsp;</span><input class="submit" type="submit"
-								name="contact_submitted" value="Update Info" />
-						</p>
-
-					</div>
-				</form>
-
-			</div>
-		</div>
-	</div>
+    <input type="submit" value="Save Changes" style="width:100%;margin-top:28px;">
+  </form>
+</div>
 </body>
 </html>

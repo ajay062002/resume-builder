@@ -1,1 +1,3 @@
-imagepath="D:\\2020 Projects\\2020_Pycharm_Projects\\ResumeBuilder\\"
+import os
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+imagepath = os.path.join(BASE_DIR, 'images') + os.sep

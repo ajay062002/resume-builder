@@ -1,60 +1,46 @@
-{% load  static%}
-<!DOCTYPE HTML>
-<html>
-
+<\!DOCTYPE html>
+<html lang="en">
 <head>
-<title>Resume Ranking</title>
-<link rel="stylesheet" type="text/css" href="{% static 'style/style.css'%}" title="style" />
+  {% load static %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resume Ranking – Login</title>
+  <link rel="stylesheet" href="{% static 'style/style.css' %}">
+  <style>
+    .login-wrap { min-height: calc(100vh - 57px); display: flex; align-items: center; justify-content: center; }
+    .login-wrap form { width: 100%; max-width: 420px; margin: 0; }
+  </style>
 </head>
-
 <body>
-	<div id="main">
-		<div id="header">
-			<div id="logo">
-				<div id="logo_text">
-					<!-- class="logo_colour", allows you to change the colour of the text -->
-					<h3>
-						<center><a href="#"><font color="white" size="5">Resume Ranking</font></a></center>
-					</h3>
-					<br/><br/>
-				</div>
-			</div>
-			<div id="menubar">
-				<ul id="menu">
-				
-					<li><a href="/login">Home</a></li>
-					<li><a href="/registration">Registration</a></li>
+<nav>
+  <span style="color:#f1f5f9;font-weight:700;font-size:1.05rem;letter-spacing:.3px;">Resume Ranking</span>
+  <ul>
+    <li><a href="/login">Home</a></li>
+    <li><a href="/registration">Register</a></li>
+  </ul>
+</nav>
 
-				</ul>
-			</div>
-		</div>
-		<div id="content_header"></div>
-		<div id="site_content">
-			<div id="content">
-				
-				<h1>Login Status : {{message}}</h1>
-
-				<form name="form" action="/loginaction/">
-					{% csrf_token %}
-					<div class="form_settings">
-						
-						<p>
-							<span>User Name :</span><input class="contact" type="text"
-								name="username" required/>
-						</p>
-						<p>
-							<span>Password :</span><input class="contact" type="password"
-								name="password" required/>
-						</p>
-						<p style="padding-top: 15px">
-							<span>&nbsp;</span><input class="submit" type="submit"
-								name="contact_submitted" value="Login" />
-						</p>
-					</div>
-				</form>
-				
-			</div>
-		</div>
-	</div>
+<div class="login-wrap">
+  <div style="width:100%;max-width:460px;padding:0 24px;">
+    {% if message %}
+    <div class="message {% if 'invalid' in message|lower or 'fail' in message|lower or 'wrong' in message|lower %}error{% endif %}">
+      {{ message }}
+    </div>
+    {% endif %}
+    <form action="/loginaction/" method="get">
+      {% csrf_token %}
+      <h2 style="text-align:center;border:none;padding-bottom:4px;margin-bottom:4px;">Welcome back</h2>
+      <p style="text-align:center;color:#64748b;font-size:.9rem;margin-bottom:20px;">Sign in to your account</p>
+      <label>Email / Username</label>
+      <input type="text" name="username" placeholder="Enter your email" required autofocus>
+      <label>Password</label>
+      <input type="password" name="password" placeholder="Enter your password" required>
+      <input type="submit" value="Sign In" style="width:100%;margin-top:24px;">
+      <p style="text-align:center;margin-top:16px;font-size:.88rem;color:#64748b;">
+        Don't have an account? <a href="/registration">Register here</a>
+      </p>
+    </form>
+  </div>
+</div>
 </body>
 </html>

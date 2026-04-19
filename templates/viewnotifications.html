@@ -1,108 +1,71 @@
-{% load  static%}
-<!DOCTYPE HTML>
-<html>
-
+<\!DOCTYPE html>
+<html lang="en">
 <head>
-<title>Resume Ranking</title>
-<link rel="stylesheet" type="text/css" href="{% static 'style/style.css'%}" title="style" />
-
-    <style>
-        #customers {
-          font-family: Arial, Helvetica, sans-serif;
-          border-collapse: collapse;
-          width: 100%;
-        }
-
-        #customers td, #customers th {
-          border: 1px solid #ddd;
-          padding: 8px;
-        }
-
-        #customers tr:nth-child(even){background-color: #f2f2f2;}
-
-        #customers tr:hover {background-color: #ddd;}
-
-        #customers th {
-          padding-top: 12px;
-          padding-bottom: 12px;
-          text-align: left;
-          background-color: #4CAF50;
-          color: white;
-        }
-    </style>
-
+  {% load static %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resume Ranking – Job Board</title>
+  <link rel="stylesheet" href="{% static 'style/style.css' %}">
 </head>
 <body>
-	<div id="main">
-		<div id="header">
-			<div id="logo">
-				<div id="logo_text">
-					<!-- class="logo_colour", allows you to change the colour of the text -->
-					<h3>
-						<center><a href="#"><font color="white" size="5">Resume Ranking</font></a></center>
-					</h3>
-					<br/><br/>
-				</div>
-			</div>
-			<div id="menubar">
-				<ul id="menu">
+<nav>
+  <span style="color:#f1f5f9;font-weight:700;font-size:1.05rem;">Resume Ranking</span>
+  <ul>
+    {% if request.session.role == "user" %}
+      <li><a href="/viewprofile">Profile</a></li>
+      <li><a href="/getnotifications">Job Board</a></li>
+      <li><a href="/logout">Logout</a></li>
+    {% endif %}
+    {% if request.session.role == "admin" %}
+      <li><a href="/search">Search</a></li>
+      <li><a href="/addnotification">Post Job</a></li>
+      <li><a href="/getnotifications">Job Board</a></li>
+      <li><a href="/logout">Logout</a></li>
+    {% endif %}
+  </ul>
+</nav>
 
-                    {% if request.session.role in "user" %}
-                         <li><a href="/viewprofile">Profile</a></li>
-                         <li> <a href="/getnotifications">View Jobs</a></li>
-                         <li><a href="/logout">Logout</a></li>
-                    {% endif %}
+<div class="container">
+  <h1>Job Board</h1>
+  <p style="color:#64748b;font-size:.9rem;margin-top:-12px;margin-bottom:20px;">Browse open positions</p>
 
-                    {% if request.session.role in "admin" %}
-                         <li><a href="/search">Search Profile</a></li>
-					     <li><a href="/addnotification">Post Job Notification</a></li>
-                         <li> <a href="/getnotifications">View Jobs</a></li>
-                         <li><a href="/logout">Logout</a></li>
-                    {% endif %}
+  {% if message %}
+  <div class="message">{{ message }}</div>
+  {% endif %}
 
-				</ul>
-			</div>
-		</div>
-		<div id="content_header"></div>
-		<div id="site_content">
-
-            <div id="content">
-
-				<h1>Welcome to  <strong>{{request.session.username}}</strong>{{form.non_field_errors}}</h1>
-
-                <h1><strong>{{message}}</strong></h1>
-
-                <table id="customers">
-                  <tr>
-
-                      <th>Title</th>
-                      <th>Description</th>
-                      <th>Skills Required</th>
-
-                      {% if request.session.role in "admin" %}
-                          <th>Delete</th>
-                      {% endif %}
-
-                  </tr>
-                    {% for notification in notifications %}
-
-                        <tr>
-
-                            <td>{{ notification.title }}</td>
-                            <td>{{ notification.description}}</td>
-                            <td>{{ notification.skills}}</td>
-
-                            {% if request.session.role in "admin" %}
-                                <td><a href="/deletenotification?notificationid={{ notification.id }}">delete</a></td>
-                            {% endif %}
-
-                        </tr>
-
-                    {% endfor %}
-                </table>
-
-            </div>
-        </div>
-	</div>
+  {% if notifications %}
+  <table>
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Description</th>
+        <th>Skills Required</th>
+        {% if request.session.role == "admin" %}
+        <th>Action</th>
+        {% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for notification in notifications %}
+      <tr>
+        <td><strong>{{ notification.title }}</strong></td>
+        <td style="color:#94a3b8;">{{ notification.description }}</td>
+        <td><span class="score">{{ notification.skills }}</span></td>
+        {% if request.session.role == "admin" %}
+        <td><a href="/deletenotification?notificationid={{ notification.id }}" style="color:#ef4444;font-size:.85rem;">Delete</a></td>
+        {% endif %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="card" style="text-align:center;color:#64748b;padding:40px;">
+    No jobs posted yet.
+    {% if request.session.role == "admin" %}
+    <br><a href="/addnotification" style="margin-top:12px;display:inline-block;">Post the first job</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
 </body>
 </html>
